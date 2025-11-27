@@ -69,7 +69,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role
-        token.roles = user.roles || JSON.stringify([user.role])
+        // PostgreSQL Json type - no need to stringify
+        token.roles = typeof user.roles === 'string' 
+          ? user.roles 
+          : JSON.stringify(user.roles || [user.role])
         token.id = user.id
       }
       return token

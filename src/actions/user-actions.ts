@@ -85,12 +85,12 @@ export async function updateUser(id: string, data: { name: string; username: str
     const updateData: any = {
       name: data.name,
       username: data.username,
-      roles: JSON.stringify(data.roles),
+      roles: data.roles, // PostgreSQL Json type - no stringify needed!
       // Also update old role field for backward compatibility
       role: data.roles[0] || 'SANTRI',
     }
 
-    console.log('Stringified roles:', updateData.roles)
+    console.log('Roles data:', updateData.roles)
 
     // Hash password if provided
     if (data.password) {
