@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/auth'
+import { parseRoles } from '@/lib/role-utils'
 
 export async function POST(request: NextRequest) {
   const session = await auth()
@@ -13,15 +14,9 @@ export async function POST(request: NextRequest) {
 
   console.log('Role selected:', selectedRole)
 
-  // Verify user has this role
-  let roles: string[] = []
-  try {
-    // @ts-ignore
-    roles = session.user.roles ? JSON.parse(session.user.roles) : [session.user.role || 'SANTRI']
-  } catch {
-    // @ts-ignore
-    roles = [session.user.role || 'SANTRI']
-  }
+  // Verify user has this role (PostgreSQL compatible)
+  // @ts-ignore
+  const roles = parseRoles(session.user.roles) || [session.user.role || 'SANTRI']
 
   if (!roles.includes(selectedRole)) {
     return NextResponse.json({ error: 'Invalid role' }, { status: 400 })

@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge"
 import { Trash2, Pencil } from "lucide-react"
 import { deleteUser, updateUser } from "@/actions/user-actions"
 import { EditUserDialog } from "./edit-user-dialog"
+import { parseRoles } from "@/lib/role-utils"
 
 export default function UserTable({ users }: { users: any[] }) {
   const router = useRouter()
@@ -30,11 +31,7 @@ export default function UserTable({ users }: { users: any[] }) {
   }
 
   const getRoles = (user: any) => {
-    try {
-      return user.roles ? JSON.parse(user.roles) : [user.role]
-    } catch {
-      return [user.role]
-    }
+    return parseRoles(user.roles) || [user.role]
   }
 
   return (

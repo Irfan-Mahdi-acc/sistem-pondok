@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
 import { encrypt, decrypt } from "@/lib/encryption"
+import { parseRoles } from "@/lib/role-utils"
 
 const UstadzSchema = z.object({
   userId: z.string().optional(),
@@ -51,12 +52,8 @@ export async function getUstadzList() {
   // Filter to only show users with USTADZ role (supports multi-role)
   const ustadzList = allUstadz.filter(ustadz => {
     if (!ustadz.user) return false
-    try {
-      const rolesArray = ustadz.user.roles ? JSON.parse(ustadz.user.roles) : [ustadz.user.role]
-      return rolesArray.includes('USTADZ')
-    } catch {
-      return ustadz.user.role === 'USTADZ'
-    }
+    const rolesArray = parseRoles(ustadz.user.roles) || [ustadz.user.role]
+    return rolesArray.includes('USTADZ')
   })
 
   // Decrypt sensitive fields before sending to client
@@ -259,12 +256,8 @@ export async function getAvailableUsers() {
     
     // Filter users that have USTADZ role (either in role or roles array)
     const users = allUsers.filter(user => {
-      try {
-        const rolesArray = user.roles ? JSON.parse(user.roles) : [user.role]
-        return rolesArray.includes('USTADZ')
-      } catch {
-        return user.role === 'USTADZ'
-      }
+      const rolesArray = parseRoles(user.roles) || [user.role]
+      return rolesArray.includes('USTADZ')
     })
     
     return users

@@ -8,42 +8,35 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// --- Authentication & Roles ---
-
 model User {
-  id        String   @id @default(cuid())
-  username  String   @unique
-  password  String
-  name      String
-  role      String   // DEPRECATED: Use roles instead. Values: "SUPER_ADMIN", "ADMIN", "MUDIR", "USTADZ", "BENDAHARA", "STAFF", "SANTRI", "WALI", "PENGURUS", "ADMIN_KANTOR", "WALI_SANTRI", "MUSYRIF"
-  roles     Json     @default("[]") // NEW: JSON array of roles, e.g. ["USTADZ", "PENGURUS"] - PostgreSQL Json type
-  avatarUrl String?
-  
-  // Security fields
-  passwordChangedAt    DateTime?
-  failedLoginAttempts  Int       @default(0)
-  lockedUntil          DateTime?
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  ustadzProfile   UstadzProfile?
-  santriProfile   Santri?
-  permissions     UserPermission[]
-  financialAccess FinancialCategoryAccess[]
+  id                  String                    @id @default(cuid())
+  username            String                    @unique
+  password            String
+  name                String
+  role                String
+  roles               Json                      @default("[]")
+  avatarUrl           String?
+  passwordChangedAt   DateTime?
+  failedLoginAttempts Int                       @default(0)
+  lockedUntil         DateTime?
+  createdAt           DateTime                  @default(now())
+  updatedAt           DateTime                  @updatedAt
+  financialAccess     FinancialCategoryAccess[]
+  santriProfile       Santri?
+  permissions         UserPermission[]
+  ustadzProfile       UstadzProfile?
 }
 
 model Role {
   id          String           @id @default(cuid())
-  name        String           @unique // e.g., "Sie Transportasi"
+  name        String           @unique
   permissions RolePermission[]
 }
 
 model Permission {
   id              String           @id @default(cuid())
-  action          String           // e.g., "create", "read", "update", "delete"
-  resource        String           // e.g., "finance_transport", "santri_data"
+  action          String
+  resource        String
   rolePermissions RolePermission[]
   userPermissions UserPermission[]
 }
@@ -52,8 +45,8 @@ model RolePermission {
   id           String     @id @default(cuid())
   roleId       String
   permissionId String
-  role         Role       @relation(fields: [roleId], references: [id])
   permission   Permission @relation(fields: [permissionId], references: [id])
+  role         Role       @relation(fields: [roleId], references: [id])
 
   @@unique([roleId, permissionId])
 }
@@ -62,13 +55,11 @@ model UserPermission {
   id           String     @id @default(cuid())
   userId       String
   permissionId String
-  user         User       @relation(fields: [userId], references: [id])
   permission   Permission @relation(fields: [permissionId], references: [id])
+  user         User       @relation(fields: [userId], references: [id])
 
   @@unique([userId, permissionId])
 }
-
-// --- App Settings ---
 
 model AppSettings {
   id        String   @id @default(cuid())
@@ -80,813 +71,683 @@ model AppSettings {
 
 model PondokProfile {
   id          String   @id @default(cuid())
-  name        String   // Nama Pondok
-  address     String?  // Alamat lengkap
-  phone       String?  // Nomor telepon
-  email       String?  // Email
-  website     String?  // Website
-  logoUrl     String?  // Logo pondok
-  description String?  // Deskripsi/visi misi
+  name        String
+  address     String?
+  phone       String?
+  email       String?
+  website     String?
+  logoUrl     String?
+  description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
 model PDFLayoutSettings {
-  id              String   @id @default(cuid())
-  lembagaId       String?  @unique // Each lembaga can have one PDF layout setting
-  lembaga         Lembaga? @relation(fields: [lembagaId], references: [id])
-  
-  // Logo Settings
-  showLogo        Boolean  @default(true)
-  logoUrl         String?  // Custom logo for this lembaga (overrides lembaga.logoUrl)
-  logoSize        Int      @default(30)  // mm
-  
-  // Header/KOP Settings
-  headerText      String?  // Custom header text (e.g., "YAYASAN PENDIDIKAN ISLAM")
-  schoolName      String?  // School/Lembaga name (e.g., "MADRASAH TSANAWIYAH TADZIMUSSUNNAH")
-  address         String?  // Full address
-  phone           String?  // Phone number
-  email           String?  // Email
-  website         String?  // Website
-  
-  showPondokName  Boolean  @default(true)
-  pondokNameSize  Int      @default(14)  // font size
-  
-  // Footer Settings
-  footerText      String?  // Optional footer
-  
-  // Rich Text Content (Overrides structured fields if present)
-  content         String?  // HTML content for KOP
-  
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default(cuid())
+  lembagaId      String?  @unique
+  showLogo       Boolean  @default(true)
+  logoUrl        String?
+  logoSize       Int      @default(30)
+  headerText     String?
+  schoolName     String?
+  address        String?
+  phone          String?
+  email          String?
+  website        String?
+  showPondokName Boolean  @default(true)
+  pondokNameSize Int      @default(14)
+  footerText     String?
+  content        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  lembaga        Lembaga? @relation(fields: [lembagaId], references: [id])
 }
 
 model SyncMetadata {
   id           String   @id @default(cuid())
-  dataType     String   @unique // "santri", "kelas", "ustadz", "jadwal"
+  dataType     String   @unique
   lastModified DateTime @default(now())
   recordCount  Int      @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
 
-// --- Institution & Class Management ---
-
-// --- Institution Data ---
-
 model Lembaga {
-  id      String   @id @default(cuid())
-  name    String
-  address String?
-  phone   String?
-  email   String?
-  logoUrl String?
-  jenjang String?  // Custom Level Name (e.g. "Ula", "Wustho", etc.)
-  tags    String?  // Comma-separated tags for grouping lembaga
-  santris Santri[]
-  kelas   Kelas[]
-  jamPelajaran JamPelajaran[]
+  id                String                 @id @default(cuid())
+  name              String
+  address           String?
+  phone             String?
+  email             String?
+  logoUrl           String?
+  jenjang           String?
+  tags              String?
   academicCalendars AcademicCalendar[]
-  academicYears AcademicYear[]
-  eventLembagas EventLembaga[]
+  academicYears     AcademicYear[]
+  eventLembagas     EventLembaga[]
+  gradeSettings     GradeSetting[]
+  gradeWeights      GradeWeight[]
+  jamPelajaran      JamPelajaran[]
+  kelas             Kelas[]
+  gradeCategories   LembagaGradeCategory[]
+  mapelGroups       MapelGroup[]
+  nilais            Nilai[]
   pdfLayoutSettings PDFLayoutSettings?
-  nilais  Nilai[]  // Non-subject grades for this lembaga
-  gradeCategories LembagaGradeCategory[]  // Custom grade categories
-  mapelGroups MapelGroup[]  // Mapel groups for this lembaga
-  gradeSettings GradeSetting[]  // Customizable grade labels (1-10)
-  gradeWeights GradeWeight[]  // Grade weighting system (bobot nilai)
+  santris           Santri[]
 }
 
-// Custom grade categories for lembaga (e.g., Fiqh group: Sholat, Zakat, etc.)
 model LembagaGradeCategory {
-  id          String   @id @default(cuid())
-  lembagaId   String
-  lembaga     Lembaga  @relation(fields: [lembagaId], references: [id], onDelete: Cascade)
-  
-  name        String   // "Sholat", "Zakat", "Kepribadian"
-  groupName   String?  // "Fiqh", "Akhlak", null for ungrouped
-  gradeType   String   @default("LETTER") // "NUMERIC" or "LETTER"
-  order       Int      @default(0) // For sorting
-  
-  nilais      Nilai[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  @@unique([lembagaId, name]) // Prevent duplicate category names per lembaga
+  id        String   @id @default(cuid())
+  lembagaId String
+  name      String
+  groupName String?
+  gradeType String   @default("LETTER")
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lembaga   Lembaga  @relation(fields: [lembagaId], references: [id], onDelete: Cascade)
+  nilais    Nilai[]
+
+  @@unique([lembagaId, name])
   @@index([lembagaId])
 }
 
-
-// --- Santri Management ---
-
 model Santri {
-  id             String   @id @default(cuid())
-  nis            String   @unique
-  nisn           String?  // National Student ID
-  nama           String
-  gender         String   // "L", "P"
-  birthPlace     String?
-  birthDate      DateTime?
-  address        String?
-  phone          String?
-  email          String?
-  
-  // Administrative Data
-  bpjsNumber     String?
-  kkNumber       String?  // Kartu Keluarga
-  nikNumber      String?  // NIK KTP
-  previousSchool String?
-  entryDate      DateTime? @default(now())
-  status         String   @default("ACTIVE") // "ACTIVE", "GRADUATED", "DROPPED", "TRANSFERRED"
-  
-  // Guardian Data - Father
-  fatherName     String?
-  fatherNik      String?
-  fatherPhone    String?
-  fatherJob      String?
-  fatherIncome   String?
-  
-  // Guardian Data - Mother
-  motherName     String?
-  motherNik      String?
-  motherPhone    String?
-  motherJob      String?
-  motherIncome   String?
-  
-  // Guardian Data - Wali (if different from parents)
-  waliName       String?
-  waliNik        String?
-  waliPhone      String?
-  waliJob        String?
-  waliRelation   String?  // Relationship to student
-  waliPassword   String?  // For Wali Portal
-  
-  // Relations
-  lembagaId      String
-  lembaga        Lembaga  @relation(fields: [lembagaId], references: [id])
-  kelasId        String?
-  kelas          Kelas?   @relation(fields: [kelasId], references: [id])
-  classAsLeader  Kelas?   @relation("ClassLeader") // If this santri is a class leader
-  
-  asramaId       String?
-  asrama         Asrama?  @relation("AsramaSantris", fields: [asramaId], references: [id])
-  ketuaAsramaOf  Asrama?  @relation("AsramaKetuaAsrama") // If this santri is asrama leader
-  
-  halqohId       String?
-  halqoh         Halqoh?  @relation(fields: [halqohId], references: [id])
-  userId         String?  @unique // Optional link to User account
-  user           User?    @relation(fields: [userId], references: [id])
-  
-  // History & Records
-  nilais         Nilai[]
-  tahfidzRecords Tahfidz[]
-  billings       Billing[]
-  tagihans       Tagihan[]
+  id              String              @id @default(cuid())
+  nis             String              @unique
+  nisn            String?
+  nama            String
+  gender          String
+  birthPlace      String?
+  birthDate       DateTime?
+  address         String?
+  phone           String?
+  email           String?
+  bpjsNumber      String?
+  kkNumber        String?
+  nikNumber       String?
+  previousSchool  String?
+  entryDate       DateTime?           @default(now())
+  status          String              @default("ACTIVE")
+  fatherName      String?
+  fatherNik       String?
+  fatherPhone     String?
+  fatherJob       String?
+  fatherIncome    String?
+  motherName      String?
+  motherNik       String?
+  motherPhone     String?
+  motherJob       String?
+  motherIncome    String?
+  waliName        String?
+  waliNik         String?
+  waliPhone       String?
+  waliJob         String?
+  waliRelation    String?
+  waliPassword    String?
+  lembagaId       String
+  kelasId         String?
+  asramaId        String?
+  halqohId        String?
+  userId          String?             @unique
+  achievements    AchievementRecord[]
+  ketuaAsramaOf   Asrama?             @relation("AsramaKetuaAsrama")
+  billings        Billing[]
+  ibadahRecords   IbadahRecord[]
+  classAsLeader   Kelas?              @relation("ClassLeader")
+  kelasHistory    KelasHistory[]
+  nilais          Nilai[]
   psbRegistration PSBRegistration?
-  kelasHistory   KelasHistory[]
-  violations     ViolationRecord[]
-  achievements   AchievementRecord[]
-  ibadahRecords  IbadahRecord[]
-  piketSchedules PiketSchedule[]
+  piketSchedules  PiketSchedule[]
+  asrama          Asrama?             @relation("AsramaSantris", fields: [asramaId], references: [id])
+  halqoh          Halqoh?             @relation(fields: [halqohId], references: [id])
+  kelas           Kelas?              @relation(fields: [kelasId], references: [id])
+  lembaga         Lembaga             @relation(fields: [lembagaId], references: [id])
+  user            User?               @relation(fields: [userId], references: [id])
+  tagihans        Tagihan[]
+  tahfidzRecords  Tahfidz[]
+  violations      ViolationRecord[]
 }
 
 model Kelas {
-  id          String   @id @default(cuid())
-  name        String   // e.g., "7A", "10B"
-  level       String   // "1", "2", "3" (Numeric level within jenjang)
-  lembagaId   String
-  lembaga     Lembaga  @relation(fields: [lembagaId], references: [id])
-  santris     Santri[]
-  mapels      Mapel[]  // Subjects taught in this class
-  jadwals     JadwalPelajaran[] // Schedule entries for this class
-
-  // Class Leader (Ketua Kelas)
-  ketuaKelasId String? @unique
-  ketuaKelas   Santri?  @relation("ClassLeader", fields: [ketuaKelasId], references: [id])
-
-  // Homeroom Teacher (Wali Kelas)
-  waliKelasId  String?
-  waliKelas    UstadzProfile?  @relation("HomeroomTeacher", fields: [waliKelasId], references: [id])
-
-  // Promotion Logic
-  nextKelasId String?
-  nextKelas   Kelas?   @relation("ClassPromotion", fields: [nextKelasId], references: [id])
-  prevKelas   Kelas[]  @relation("ClassPromotion")
-
-  kelasHistory KelasHistory[]
+  id             String            @id @default(cuid())
+  name           String
+  level          String
+  lembagaId      String
+  ketuaKelasId   String?           @unique
+  waliKelasId    String?
+  nextKelasId    String?
+  jadwals        JadwalPelajaran[]
+  ketuaKelas     Santri?           @relation("ClassLeader", fields: [ketuaKelasId], references: [id])
+  lembaga        Lembaga           @relation(fields: [lembagaId], references: [id])
+  nextKelas      Kelas?            @relation("ClassPromotion", fields: [nextKelasId], references: [id])
+  prevKelas      Kelas[]           @relation("ClassPromotion")
+  waliKelas      UstadzProfile?    @relation("HomeroomTeacher", fields: [waliKelasId], references: [id])
+  kelasHistory   KelasHistory[]
+  mapels         Mapel[]
   piketSchedules PiketSchedule[]
+  santris        Santri[]
 }
 
 model JamPelajaran {
-  id        String   @id @default(cuid())
+  id        String            @id @default(cuid())
   lembagaId String
-  lembaga   Lembaga  @relation(fields: [lembagaId], references: [id])
-  name      String   // "Jam Ke-1", "Istirahat"
-  startTime String   // "07:00"
-  endTime   String   // "07:40"
-  order     Int      // 1, 2, 3
+  name      String
+  startTime String
+  endTime   String
+  order     Int
   jadwals   JadwalPelajaran[]
+  lembaga   Lembaga           @relation(fields: [lembagaId], references: [id])
 }
 
-
-
 model JadwalPelajaran {
-  id              String       @id @default(cuid())
-  day             String       // "Senin", "Selasa"
-  kelasId         String
-  kelas           Kelas        @relation(fields: [kelasId], references: [id])
-  mapelId         String?      // Nullable for breaks/free time
-  mapel           Mapel?       @relation(fields: [mapelId], references: [id])
-  jamPelajaranId  String
-  jamPelajaran    JamPelajaran @relation(fields: [jamPelajaranId], references: [id])
+  id             String       @id @default(cuid())
+  day            String
+  kelasId        String
+  mapelId        String?
+  jamPelajaranId String
+  jamPelajaran   JamPelajaran @relation(fields: [jamPelajaranId], references: [id])
+  kelas          Kelas        @relation(fields: [kelasId], references: [id])
+  mapel          Mapel?       @relation(fields: [mapelId], references: [id])
 }
 
 model Asrama {
-  id             String   @id @default(cuid())
+  id             String          @id @default(cuid())
   name           String
   capacity       Int
-  gender         String?  // "L", "P", or "MIXED"
+  gender         String?
   address        String?
-  
-  // Relations
-  ketuaAsramaId  String?  @unique
-  ketuaAsrama    Santri?  @relation("AsramaKetuaAsrama", fields: [ketuaAsramaId], references: [id])
-  
+  ketuaAsramaId  String?         @unique
   musyrifId      String?
-  musyrif        UstadzProfile? @relation(fields: [musyrifId], references: [id])
-  
-  santris        Santri[] @relation("AsramaSantris")
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  ketuaAsrama    Santri?         @relation("AsramaKetuaAsrama", fields: [ketuaAsramaId], references: [id])
+  musyrif        UstadzProfile?  @relation(fields: [musyrifId], references: [id])
   piketSchedules PiketSchedule[]
+  santris        Santri[]        @relation("AsramaSantris")
 }
 
 model Halqoh {
-  id          String   @id @default(cuid())
-  name        String   // e.g., "Halqoh A", "Halqoh Tahfidz 1"
+  id          String         @id @default(cuid())
+  name        String
   description String?
   ustadzId    String?
+  schedule    String?
+  level       String?
+  maxCapacity Int?
+  status      String         @default("ACTIVE")
   ustadz      UstadzProfile? @relation(fields: [ustadzId], references: [id])
   santris     Santri[]
-  schedule    String?  // e.g., "Senin-Rabu 07:00-08:00"
-  level       String?  // e.g., "Beginner", "Intermediate", "Advanced"
-  maxCapacity Int?     // Maximum number of students
-  status      String   @default("ACTIVE") // "ACTIVE", "INACTIVE"
 }
-
-// --- Ustadz Management ---
 
 model UstadzProfile {
-  id          String   @id @default(cuid())
-  userId      String?  @unique
-  user        User?    @relation(fields: [userId], references: [id])
-  
-  // Personal Data
-  nik         String?  @unique
-  phone       String?
-  address     String?
-  birthPlace  String?
-  birthDate   DateTime?
-  
-  // Employment Data
-  hireDate    DateTime? @default(now())
-  status      String   @default("ACTIVE") // "ACTIVE", "INACTIVE", "RESIGNED"
-  specialization String? // e.g., "Tahfidz", "Fiqh", "Nahwu"
-  education   String?  // e.g., "S1 Pendidikan Agama Islam"
-  
-  // Relations
-  mapels      Mapel[]
-  halqohs     Halqoh[]
-  tahfidzRecords Tahfidz[]
-  homeroomClasses Kelas[] @relation("HomeroomTeacher") // Classes where this ustadz is the homeroom teacher
-  asramaMusyrif Asrama[] // Asrama where this ustadz is the musyrif
+  id              String    @id @default(cuid())
+  userId          String?   @unique
+  nik             String?   @unique
+  phone           String?
+  address         String?
+  birthPlace      String?
+  birthDate       DateTime?
+  hireDate        DateTime? @default(now())
+  status          String    @default("ACTIVE")
+  specialization  String?
+  education       String?
+  asramaMusyrif   Asrama[]
+  halqohs         Halqoh[]
+  homeroomClasses Kelas[]   @relation("HomeroomTeacher")
+  mapels          Mapel[]
+  tahfidzRecords  Tahfidz[]
+  user            User?     @relation(fields: [userId], references: [id])
 }
 
-// --- Academic System ---
-
 model AcademicYear {
-  id          String   @id @default(cuid())
-  name        String   // e.g., "2024/2025" or "2024"
-  startDate   DateTime
-  endDate     DateTime
-  isActive    Boolean  @default(false)
-  lembagaId   String?
-  lembaga     Lembaga? @relation(fields: [lembagaId], references: [id])
-  
-  // Relations for semester-based tracking
-  ujians      Ujian[]
-  nilais      Nilai[]
+  id             String    @id @default(cuid())
+  name           String
+  startDate      DateTime
+  endDate        DateTime
+  isActive       Boolean   @default(false)
+  lembagaId      String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  lembaga        Lembaga?  @relation(fields: [lembagaId], references: [id])
+  nilais         Nilai[]
   tahfidzRecords Tahfidz[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  ujians         Ujian[]
 }
 
 model AcademicCalendar {
-  id            String   @id @default(cuid())
+  id            String         @id @default(cuid())
   title         String
   startDate     DateTime
   endDate       DateTime
   description   String?
-  type          String   // "HOLIDAY", "EXAM", "EVENT"
-  academicYear  String?  // e.g., "2024/2025"
-  color         String?  // Hex color code for unique event colors
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  // Multi-institution support via junction table
-  eventLembagas EventLembaga[]
-  
-  // Keep for backward compatibility (deprecated)
+  type          String
+  academicYear  String?
+  color         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   lembagaId     String?
-  lembaga       Lembaga? @relation(fields: [lembagaId], references: [id])
+  lembaga       Lembaga?       @relation(fields: [lembagaId], references: [id])
+  eventLembagas EventLembaga[]
 }
 
-// Junction table for many-to-many relationship between Events and Lembaga
 model EventLembaga {
-  id        String   @id @default(cuid())
+  id        String           @id @default(cuid())
   eventId   String
   lembagaId String
   event     AcademicCalendar @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  lembaga   Lembaga @relation(fields: [lembagaId], references: [id], onDelete: Cascade)
-  
+  lembaga   Lembaga          @relation(fields: [lembagaId], references: [id], onDelete: Cascade)
+
   @@unique([eventId, lembagaId])
 }
 
-// Mapel Grouping (e.g., Fiqh group: Sholat, Zakat, etc. per lembaga)
 model MapelGroup {
-  id         String   @id @default(cuid())
-  lembagaId  String
-  lembaga    Lembaga  @relation(fields: [lembagaId], references: [id], onDelete: Cascade)
-  name       String   // "Fiqh", "Aqidah", "Hadits"
-  order      Int      @default(0) // For sorting
-  
-  mapels     Mapel[]
-  
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  
-  @@unique([lembagaId, name]) // Prevent duplicate group names per lembaga
+  id        String   @id @default(cuid())
+  lembagaId String
+  name      String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  mapels    Mapel[]
+  lembaga   Lembaga  @relation(fields: [lembagaId], references: [id], onDelete: Cascade)
+
+  @@unique([lembagaId, name])
   @@index([lembagaId])
 }
 
-
 model Mapel {
-  id        String   @id @default(cuid())
-  name      String
-  code      String?
-  kelasId   String
-  kelas     Kelas    @relation(fields: [kelasId], references: [id])
-  ustadzId  String?
-  ustadz    UstadzProfile? @relation(fields: [ustadzId], references: [id])
-  groupId   String?  // Optional - link to MapelGroup
-  group     MapelGroup? @relation(fields: [groupId], references: [id])
-  jadwals   JadwalPelajaran[]
-  nilais    Nilai[]
-  ujians    Ujian[]
-  questionCategories QuestionCategory[]
+  id                 String             @id @default(cuid())
+  name               String
+  code               String?
+  kelasId            String
+  ustadzId           String?
+  groupId            String?
+  jadwals            JadwalPelajaran[]
+  group              MapelGroup?        @relation(fields: [groupId], references: [id])
+  kelas              Kelas              @relation(fields: [kelasId], references: [id])
+  ustadz             UstadzProfile?     @relation(fields: [ustadzId], references: [id])
+  nilais             Nilai[]
   questionBank       QuestionBank[]
+  questionCategories QuestionCategory[]
+  ujians             Ujian[]
 }
 
-
 model Ujian {
-  id          String   @id @default(cuid())
-  name        String   // e.g., "UTS Semester 1"
-  type        String   // "HARIAN", "UTS", "UAS", "LISAN", "PRAKTEK"
-  date        DateTime
-  duration    Int?     // Durasi dalam menit (optional)
-  description String?  // Deskripsi ujian
-  
-  // Semester support
-  semester       String?  // "1" or "2"
+  id             String         @id @default(cuid())
+  name           String
+  type           String
+  date           DateTime
+  duration       Int?
+  description    String?
+  semester       String?
   academicYearId String?
-  academicYear   AcademicYear? @relation(fields: [academicYearId], references: [id])
-  
-  mapelId     String
-  mapel       Mapel    @relation(fields: [mapelId], references: [id])
-  questions   ExamQuestion[]
-  nilais      Nilai[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  mapelId        String
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  questions      ExamQuestion[]
+  nilais         Nilai[]
+  academicYear   AcademicYear?  @relation(fields: [academicYearId], references: [id])
+  mapel          Mapel          @relation(fields: [mapelId], references: [id])
 }
 
 model Nilai {
-  id          String   @id @default(cuid())
-  
-  // Grade fields
-  gradeType   String   @default("NUMERIC") // "NUMERIC" or "LETTER"
-  score       Float?   // For numeric grades (0-100), nullable for letter grades
-  letterGrade String?  // For letter grades: "A", "B", "C", "D", "E"
-  
-  // Category
-  category    String   @default("UJIAN") // Legacy: "UJIAN", "SIKAP", "KEHADIRAN", "PRAKTIK", "TUGAS"
-  
-  // Semester support
-  semester       String?  // "1" or "2"
+  id             String                @id @default(cuid())
+  gradeType      String                @default("NUMERIC")
+  score          Float?
+  letterGrade    String?
+  category       String                @default("UJIAN")
+  semester       String?
   academicYearId String?
-  academicYear   AcademicYear? @relation(fields: [academicYearId], references: [id])
-  
-  // Relations
-  santriId    String
-  santri      Santri   @relation(fields: [santriId], references: [id])
-  mapelId     String?  // Optional - null for non-subject grades
-  mapel       Mapel?   @relation(fields: [mapelId], references: [id])
-  ujianId     String?  // Optional for non-exam grades
-  ujian       Ujian?   @relation(fields: [ujianId], references: [id])
-  lembagaId   String?  // Optional - for non-subject grades specific to lembaga
-  lembaga     Lembaga? @relation(fields: [lembagaId], references: [id])
-  categoryId  String?  // Optional - link to custom LembagaGradeCategory
-  gradeCategory LembagaGradeCategory? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  santriId       String
+  mapelId        String?
+  ujianId        String?
+  lembagaId      String?
+  categoryId     String?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  academicYear   AcademicYear?         @relation(fields: [academicYearId], references: [id])
+  gradeCategory  LembagaGradeCategory? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  lembaga        Lembaga?              @relation(fields: [lembagaId], references: [id])
+  mapel          Mapel?                @relation(fields: [mapelId], references: [id])
+  santri         Santri                @relation(fields: [santriId], references: [id])
+  ujian          Ujian?                @relation(fields: [ujianId], references: [id])
 }
 
-// Grade Weighting System (Bobot Nilai)
-// Allows customization of exam type weights (e.g., UAS = 2x, UTS = 1.5x)
 model GradeWeight {
-  id          String   @id @default(cuid())
-  lembagaId   String
-  lembaga     Lembaga  @relation(fields: [lembagaId], references: [id], onDelete: Cascade)
-  
-  // Exam type (same as Ujian.type)
-  examType    String   // "HARIAN", "UTS", "UAS", "LISAN", "PRAKTEK", "TUGAS"
-  
-  // Weight multiplier (e.g., 2.0 for UAS, 1.5 for UTS, 1.0 for daily)
-  weight      Float    @default(1.0)
-  
-  // Display order
-  order       Int      @default(0)
-  
-  // Is active
-  isActive    Boolean  @default(true)
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  id        String   @id @default(cuid())
+  lembagaId String
+  examType  String
+  weight    Float    @default(1.0)
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lembaga   Lembaga  @relation(fields: [lembagaId], references: [id], onDelete: Cascade)
+
   @@unique([lembagaId, examType])
   @@index([lembagaId])
 }
 
-// --- Question Bank System ---
-
 model QuestionCategory {
-  id          String   @id @default(cuid())
-  name        String   // "Bab 1: Pengenalan", "Materi Dasar"
+  id          String         @id @default(cuid())
+  name        String
   description String?
   mapelId     String
-  mapel       Mapel    @relation(fields: [mapelId], references: [id])
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
   questions   QuestionBank[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  mapel       Mapel          @relation(fields: [mapelId], references: [id])
 }
 
 model QuestionBank {
-  id          String   @id @default(cuid())
-  question    String   // Pertanyaan
-  type        String   // "MULTIPLE_CHOICE", "ESSAY", "TRUE_FALSE"
-  difficulty  String   @default("MEDIUM") // "EASY", "MEDIUM", "HARD"
-  points      Int      @default(1)
-  explanation String?  // Pembahasan jawaban
-  imageUrl    String?  // URL gambar soal
-  
-  mapelId     String
-  mapel       Mapel    @relation(fields: [mapelId], references: [id])
-  
-  categoryId  String?
-  category    QuestionCategory? @relation(fields: [categoryId], references: [id])
-  
-  options     QuestionOption[]
+  id            String            @id @default(cuid())
+  question      String
+  type          String
+  difficulty    String            @default("MEDIUM")
+  points        Int               @default(1)
+  explanation   String?
+  imageUrl      String?
+  mapelId       String
+  categoryId    String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
   examQuestions ExamQuestion[]
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  category      QuestionCategory? @relation(fields: [categoryId], references: [id])
+  mapel         Mapel             @relation(fields: [mapelId], references: [id])
+  options       QuestionOption[]
 }
 
 model QuestionOption {
-  id          String   @id @default(cuid())
-  questionId  String
-  question    QuestionBank @relation(fields: [questionId], references: [id], onDelete: Cascade)
-  optionText  String
-  isCorrect   Boolean  @default(false)
-  order       Int      // 0=A, 1=B, 2=C, 3=D
+  id         String       @id @default(cuid())
+  questionId String
+  optionText String
+  isCorrect  Boolean      @default(false)
+  order      Int
+  question   QuestionBank @relation(fields: [questionId], references: [id], onDelete: Cascade)
 }
 
 model ExamQuestion {
-  id          String   @id @default(cuid())
-  ujianId     String
-  ujian       Ujian    @relation(fields: [ujianId], references: [id], onDelete: Cascade)
-  
-  // Link to question bank (optional - null if direct question)
+  id             String        @id @default(cuid())
+  ujianId        String
   questionBankId String?
-  questionBank   QuestionBank? @relation(fields: [questionBankId], references: [id])
-  
-  // Direct question fields (used if not from bank)
   directQuestion String?
-  directType     String?  // "MULTIPLE_CHOICE", "ESSAY", "TRUE_FALSE"
-  directOptions  String?  // JSON string for options
-  directAnswer   String?  // Correct answer
-  imageUrl       String?  // URL gambar soal (untuk direct question)
-  
-  order       Int      // Urutan soal dalam ujian
-  points      Int      @default(1)
-  itemType    String   @default("QUESTION") // "QUESTION", "SECTION_HEADER", "INSTRUCTION"
+  directType     String?
+  directOptions  String?
+  directAnswer   String?
+  imageUrl       String?
+  order          Int
+  points         Int           @default(1)
+  itemType       String        @default("QUESTION")
+  questionBank   QuestionBank? @relation(fields: [questionBankId], references: [id])
+  ujian          Ujian         @relation(fields: [ujianId], references: [id], onDelete: Cascade)
 }
 
 model Tahfidz {
-  id        String   @id @default(cuid())
-  santriId  String
-  santri    Santri   @relation(fields: [santriId], references: [id])
-  ustadzId  String?
-  ustadz    UstadzProfile? @relation(fields: [ustadzId], references: [id])
-  date      DateTime @default(now())
-  surah     String
-  ayatStart Int
-  ayatEnd   Int
-  type      String   // "SETORAN", "MUROJAAH", "TASMI", "UJIAN"
-  grade     String?  // Nilai 1-10 (stored as string)
-  note      String?
-  
-  // Semester support
-  semester       String?  // "1" or "2"
+  id             String         @id @default(cuid())
+  santriId       String
+  ustadzId       String?
+  date           DateTime       @default(now())
+  surah          String
+  ayatStart      Int
+  ayatEnd        Int
+  type           String
+  grade          String?
+  note           String?
+  semester       String?
   academicYearId String?
-  academicYear   AcademicYear? @relation(fields: [academicYearId], references: [id])
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @default(now()) @updatedAt
+  academicYear   AcademicYear?  @relation(fields: [academicYearId], references: [id])
+  santri         Santri         @relation(fields: [santriId], references: [id])
+  ustadz         UstadzProfile? @relation(fields: [ustadzId], references: [id])
 }
 
-// --- Financial System ---
-
 model BillingCategory {
-  id          String   @id @default(cuid())
-  name        String   // "SPP", "Pendaftaran", "Gedung", "Buku & Seragam", "Kegiatan", "Lain-lain"
+  id          String    @id @default(cuid())
+  name        String
   description String?
-  isRecurring Boolean  @default(false) // true for monthly SPP
+  isRecurring Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   billings    Billing[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 }
 
 model Billing {
-  id          String          @id @default(cuid())
-  santriId    String
-  santri      Santri          @relation(fields: [santriId], references: [id])
-  categoryId  String
-  category    BillingCategory @relation(fields: [categoryId], references: [id])
-  amount      Float
-  dueDate     DateTime
-  status      String          @default("UNPAID") // "PAID", "UNPAID", "OVERDUE", "PARTIAL"
-  description String?
+  id           String          @id @default(cuid())
+  santriId     String
+  categoryId   String
+  amount       Float
+  dueDate      DateTime
+  status       String          @default("UNPAID")
+  description  String?
   academicYear String?
-  month       String?         // For monthly SPP: "2024-01", "2024-02", etc.
-  payments    Payment[]
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  month        String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  category     BillingCategory @relation(fields: [categoryId], references: [id])
+  santri       Santri          @relation(fields: [santriId], references: [id])
+  payments     Payment[]
 }
 
 model Payment {
   id            String   @id @default(cuid())
   billingId     String
-  billing       Billing  @relation(fields: [billingId], references: [id])
   amount        Float
   paymentDate   DateTime @default(now())
-  paymentMethod String   // "CASH", "TRANSFER", "CARD"
+  paymentMethod String
   receiptNumber String   @unique
   note          String?
-  recordedBy    String?  // User ID who recorded the payment
+  recordedBy    String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  billing       Billing  @relation(fields: [billingId], references: [id])
 }
 
 model TransactionCategory {
   id           String        @id @default(cuid())
   name         String
-  type         String        // "INCOME", "EXPENSE"
+  type         String
   description  String?
-  transactions Transaction[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
+  transactions Transaction[]
 }
 
 model Transaction {
   id          String              @id @default(cuid())
   categoryId  String
-  category    TransactionCategory @relation(fields: [categoryId], references: [id])
   amount      Float
-  type        String              // "INCOME", "EXPENSE"
+  type        String
   date        DateTime            @default(now())
   description String
-  reference   String?             // Invoice number, receipt number, etc.
-  recordedBy  String?             // User ID
+  reference   String?
+  recordedBy  String?
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
+  category    TransactionCategory @relation(fields: [categoryId], references: [id])
 }
 
 model KelasHistory {
-  id          String   @id @default(cuid())
-  santriId    String
-  santri      Santri   @relation(fields: [santriId], references: [id])
-  kelasId     String
-  kelas       Kelas    @relation(fields: [kelasId], references: [id])
-  startDate   DateTime @default(now())
-  endDate     DateTime?
-  academicYear String  // e.g., "2024/2025"
-  semester    String?  // "1" or "2"
-  status      String   // "CURRENT", "COMPLETED", "TRANSFERRED"
+  id           String    @id @default(cuid())
+  santriId     String
+  kelasId      String
+  startDate    DateTime  @default(now())
+  endDate      DateTime?
+  academicYear String
+  semester     String?
+  status       String
+  kelas        Kelas     @relation(fields: [kelasId], references: [id])
+  santri       Santri    @relation(fields: [santriId], references: [id])
 }
 
 model ViolationCategory {
-  id          String   @id @default(cuid())
+  id          String            @id @default(cuid())
   name        String
-  type        String   // RINGAN, SEDANG, BERAT
+  type        String
   points      Int
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
   records     ViolationRecord[]
 }
 
 model ViolationRecord {
-  id          String   @id @default(cuid())
+  id          String            @id @default(cuid())
   santriId    String
-  santri      Santri   @relation(fields: [santriId], references: [id])
   categoryId  String
-  category    ViolationCategory @relation(fields: [categoryId], references: [id])
   date        DateTime
-  description String?  // Specific details
-  sanction    String?  // Hukuman yang diberikan
-  status      String   // PENDING, PROCESSED, RESOLVED
-  reportedBy  String?  // User ID of reporter
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  description String?
+  sanction    String?
+  status      String
+  reportedBy  String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  category    ViolationCategory @relation(fields: [categoryId], references: [id])
+  santri      Santri            @relation(fields: [santriId], references: [id])
 }
 
 model AchievementRecord {
   id          String   @id @default(cuid())
   santriId    String
-  santri      Santri   @relation(fields: [santriId], references: [id])
   title       String
-  category    String   // AKADEMIK, NON_AKADEMIK, TAHFIDZ, LAINNYA
-  level       String   // LOKAL, KABUPATEN, PROVINSI, NASIONAL, INTERNASIONAL
-  rank        String?  // Juara 1, 2, 3, Harapan, Peserta
+  category    String
+  level       String
+  rank        String?
   date        DateTime
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  santri      Santri   @relation(fields: [santriId], references: [id])
 }
 
 model IbadahRecord {
-  id          String   @id @default(cuid())
-  santriId    String
-  santri      Santri   @relation(fields: [santriId], references: [id])
-  date        DateTime
-  prayer      String   // SUBUH, DZUHUR, ASHAR, MAGHRIB, ISYA, TAHAJUD, DHUHA
-  status      String   // JAMAAH, MASBUK, MUNFARID, IZIN, SAKIT, ALPHA, HAID
-  notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  santriId  String
+  date      DateTime
+  prayer    String
+  status    String
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  santri    Santri   @relation(fields: [santriId], references: [id])
 
-  @@unique([santriId, date, prayer]) // One record per prayer per day per student
+  @@unique([santriId, date, prayer])
 }
 
 model PiketSchedule {
-  id          String   @id @default(cuid())
-  type        String   // "ASRAMA", "KELAS"
-  
+  id          String     @id @default(cuid())
+  type        String
   asramaId    String?
-  asrama      Asrama?  @relation(fields: [asramaId], references: [id])
-  
   kelasId     String?
-  kelas       Kelas?   @relation(fields: [kelasId], references: [id])
-  
-  day         String   // "SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU", "AHAD"
+  day         String
   santriId    String
-  santri      Santri   @relation(fields: [santriId], references: [id])
-  
-  area        String?  // "HALAMAN", "KAMAR MANDI", "LORONG", "KELAS", "MASJID"
-  role        String?  // "KETUA", "ANGGOTA"
-  
+  area        String?
+  role        String?
   piketAreaId String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  asrama      Asrama?    @relation(fields: [asramaId], references: [id])
+  kelas       Kelas?     @relation(fields: [kelasId], references: [id])
   piketArea   PiketArea? @relation(fields: [piketAreaId], references: [id])
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  santri      Santri     @relation(fields: [santriId], references: [id])
 }
 
 model PiketArea {
-  id          String   @id @default(cuid())
-  name        String   // "Masjid", "Dapur", "Halaman"
-  frequency   String   // "HARIAN", "MINGGUAN"
+  id          String          @id @default(cuid())
+  name        String
+  frequency   String
   description String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
   schedules   PiketSchedule[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 }
 
 model DailySchedule {
   id          String   @id @default(cuid())
-  name        String   // "Sholat Subuh", "Belajar Pagi", "Makan Siang"
-  type        String   // "IBADAH", "BELAJAR", "MAKAN", "ISTIRAHAT", "KEGIATAN"
-  startTime   String   // "04:30"
-  endTime     String   // "05:00"
-  days        String   // JSON array: ["SENIN", "SELASA", ...] or "ALL"
-  location    String?  // "Masjid", "Kelas", "Aula"
+  name        String
+  type        String
+  startTime   String
+  endTime     String
+  days        String
+  location    String?
   description String?
   isActive    Boolean  @default(true)
-  order       Int      @default(0) // For sorting
-  
+  order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
-
-// --- Financial System ---
-
 model Keuangan {
   id          String   @id @default(cuid())
   date        DateTime @default(now())
-  type        String   // "INCOME", "EXPENSE"
+  type        String
   amount      Float
-  category    String   // "SPP", "DONATION", "SALARY", "MAINTENANCE", "TRANSPORT"
+  category    String
   description String?
   proofUrl    String?
-  division    String?  // "PONDOK", "SEKOLAH", "DAPUR"
+  division    String?
 }
 
 model Tagihan {
-  id          String   @id @default(cuid())
-  santriId    String
-  santri      Santri   @relation(fields: [santriId], references: [id])
-  title       String   // "SPP November 2025"
-  amount      Float
-  dueDate     DateTime
-  status      String   // "UNPAID", "PAID"
-  paidDate    DateTime?
+  id       String    @id @default(cuid())
+  santriId String
+  title    String
+  amount   Float
+  dueDate  DateTime
+  status   String
+  paidDate DateTime?
+  santri   Santri    @relation(fields: [santriId], references: [id])
 }
 
 model FinancialCategoryAccess {
-  id         String @id @default(cuid())
-  userId     String
-  user       User   @relation(fields: [userId], references: [id])
-  category   String // The category this user can access
+  id       String @id @default(cuid())
+  userId   String
+  category String
+  user     User   @relation(fields: [userId], references: [id])
 }
 
-// --- Asset Management ---
-
 model Asset {
-  id          String   @id @default(cuid())
-  name        String
-  code        String?  @unique
-  category    String
-  condition   String   // "GOOD", "DAMAGED", "LOST"
-  location    String?
-  purchaseDate DateTime?
-  price       Float?
-  
+  id              String           @id @default(cuid())
+  name            String
+  code            String?          @unique
+  category        String
+  condition       String
+  location        String?
+  purchaseDate    DateTime?
+  price           Float?
   maintenanceLogs MaintenanceLog[]
 }
 
 model MaintenanceLog {
   id          String   @id @default(cuid())
   assetId     String
-  asset       Asset    @relation(fields: [assetId], references: [id])
   date        DateTime @default(now())
   description String
   cost        Float?
   performer   String?
+  asset       Asset    @relation(fields: [assetId], references: [id])
 }
-
-// --- PSB (Admissions) ---
 
 model PSBRegistration {
-  id          String   @id @default(cuid())
-  registrationNo String @unique
-  name        String
-  nisn        String?
-  gender      String
-  birthPlace  String
-  birthDate   DateTime
-  address     String
-  fatherName  String
-  motherName  String
-  phone       String
-  status      String   // "PENDING", "INTERVIEW", "ACCEPTED", "REJECTED"
-  
-  santriId    String?  @unique // If accepted, link to Santri record
-  santri      Santri?  @relation(fields: [santriId], references: [id])
+  id             String   @id @default(cuid())
+  registrationNo String   @unique
+  name           String
+  nisn           String?
+  gender         String
+  birthPlace     String
+  birthDate      DateTime
+  address        String
+  fatherName     String
+  motherName     String
+  phone          String
+  status         String
+  santriId       String?  @unique
+  santri         Santri?  @relation(fields: [santriId], references: [id])
 }
-
-// --- Document Archiving ---
 
 model DocumentArchive {
   id          String   @id @default(cuid())
   title       String
-  type        String   // "SURAT_MASUK", "SURAT_KELUAR", "SK", "LAINNYA"
+  type        String
   number      String?
   date        DateTime
   sender      String?
@@ -895,30 +756,25 @@ model DocumentArchive {
   description String?
 }
 
-// --- Radio ---
-
 model RadioSchedule {
-  id          String   @id @default(cuid())
-  title       String
-  startTime   DateTime
-  endTime     DateTime
-  host        String?
-  topic       String?
-  streamUrl   String?
+  id        String   @id @default(cuid())
+  title     String
+  startTime DateTime
+  endTime   DateTime
+  host      String?
+  topic     String?
+  streamUrl String?
 }
-
-// --- Grade Settings ---
 
 model GradeSetting {
   id          String   @id @default(cuid())
   lembagaId   String
-  gradeValue  Float    // 1.0, 1.1, ..., 9.9, 10.0
-  label       String   // Keterangan, e.g., "تمام", "Mumtaz", dll
-  description String?  // Deskripsi tambahan
+  gradeValue  Float
+  label       String
+  description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  lembaga Lembaga @relation(fields: [lembagaId], references: [id], onDelete: Cascade)
+  lembaga     Lembaga  @relation(fields: [lembagaId], references: [id], onDelete: Cascade)
 
   @@unique([lembagaId, gradeValue])
   @@index([lembagaId])

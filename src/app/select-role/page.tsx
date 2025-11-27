@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { UserCircle } from 'lucide-react'
+import { parseRoles } from '@/lib/role-utils'
 
 export const metadata: Metadata = {
   title: 'Pilih Role | Pondok Management',
@@ -17,15 +18,9 @@ export default async function SelectRolePage() {
     redirect('/login')
   }
 
-  // Parse roles from JSON
-  let roles: string[] = []
-  try {
-    // @ts-ignore - roles field exists but not in type
-    roles = session.user.roles ? JSON.parse(session.user.roles) : [session.user.role || 'SANTRI']
-  } catch {
-    // @ts-ignore
-    roles = [session.user.role || 'SANTRI']
-  }
+  // Parse roles (PostgreSQL compatible)
+  // @ts-ignore - roles field exists but not in type
+  const roles = parseRoles(session.user.roles) || [session.user.role || 'SANTRI']
 
   console.log('Select role page - User:', session.user.name, 'Roles:', roles)
 

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import bcrypt from "bcryptjs"
 import { encrypt, decrypt } from "@/lib/encryption"
+import { parseRoles } from "@/lib/role-utils"
 
 export async function getMusyrifList() {
   const allMusyrif = await prisma.ustadzProfile.findMany({
@@ -22,12 +23,8 @@ export async function getMusyrifList() {
   // Filter to only show users with MUSYRIF role (supports multi-role)
   const musyrifList = allMusyrif.filter(musyrif => {
     if (!musyrif.user) return false
-    try {
-      const rolesArray = musyrif.user.roles ? JSON.parse(musyrif.user.roles) : [musyrif.user.role]
-      return rolesArray.includes('MUSYRIF')
-    } catch {
-      return musyrif.user.role === 'MUSYRIF'
-    }
+    const rolesArray = parseRoles(musyrif.user.roles) || [musyrif.user.role]
+    return rolesArray.includes('MUSYRIF')
   })
 
   // Decrypt sensitive fields

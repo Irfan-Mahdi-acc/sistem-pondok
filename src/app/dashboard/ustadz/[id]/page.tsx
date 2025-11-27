@@ -3,6 +3,7 @@ import { getUstadzById } from '@/actions/ustadz-actions'
 import { notFound } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { parseRoles } from '@/lib/role-utils'
 
 export const metadata: Metadata = {
   title: 'Detail Ustadz | Pondok Management',
@@ -80,18 +81,13 @@ export default async function UstadzDetailPage({
             <div className="flex justify-between items-start">
               <span className="text-muted-foreground">Roles:</span>
               <div className="flex flex-wrap gap-1 justify-end">
-                {(() => {
-                  try {
-                    const rolesArray = ustadz.user.roles ? JSON.parse(ustadz.user.roles) : [ustadz.user.role]
-                    return rolesArray.map((role: string) => (
-                      <Badge key={role} variant="outline" className="text-xs">
-                        {role}
-                      </Badge>
-                    ))
-                  } catch {
-                    return <Badge variant="outline" className="text-xs">{ustadz.user.role}</Badge>
-                  }
-                })()}
+                {parseRoles(ustadz.user.roles).map((role: string) => (
+                  <Badge key={role} variant="outline" className="text-xs">
+                    {role}
+                  </Badge>
+                )) || (
+                  <Badge variant="outline" className="text-xs">{ustadz.user.role}</Badge>
+                )}
               </div>
             </div>
             <div className="flex justify-between">

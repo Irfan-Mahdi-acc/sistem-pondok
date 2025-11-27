@@ -2,6 +2,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { decrypt } from '@/lib/encryption'
+import { parseRoles } from '@/lib/role-utils'
 
 /**
  * Get all instructors (Ustadz, Musyrif, Pengurus) for dropdowns in Halqoh and Mapel
@@ -18,12 +19,8 @@ export async function getAllInstructors() {
   // Filter to only show users with USTADZ, MUSYRIF, or PENGURUS role
   const instructors = allProfiles.filter(profile => {
     if (!profile.user) return false
-    try {
-      const rolesArray = profile.user.roles ? JSON.parse(profile.user.roles) : [profile.user.role]
-      return rolesArray.some((role: string) => ['USTADZ', 'MUSYRIF', 'PENGURUS'].includes(role))
-    } catch {
-      return ['USTADZ', 'MUSYRIF', 'PENGURUS'].includes(profile.user.role)
-    }
+    const rolesArray = parseRoles(profile.user.roles) || [profile.user.role]
+    return rolesArray.some((role: string) => ['USTADZ', 'MUSYRIF', 'PENGURUS'].includes(role))
   })
 
   // Decrypt sensitive fields

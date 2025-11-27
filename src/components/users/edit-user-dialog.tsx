@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { X, Eye, EyeOff } from "lucide-react"
+import { parseRoles } from "@/lib/role-utils"
 import {
   Select,
   SelectContent,
@@ -45,11 +46,7 @@ export function EditUserDialog({ open, onOpenChange, user, onSave }: EditUserDia
   const [name, setName] = useState(user.name)
   const [username, setUsername] = useState(user.username)
   const [selectedRoles, setSelectedRoles] = useState<string[]>(() => {
-    try {
-      return user.roles ? JSON.parse(user.roles) : [user.role]
-    } catch {
-      return [user.role]
-    }
+    return parseRoles(user.roles) || [user.role]
   })
   const [resetPassword, setResetPassword] = useState(false)
   const [newPassword, setNewPassword] = useState('')

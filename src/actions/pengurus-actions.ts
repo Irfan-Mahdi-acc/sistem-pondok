@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import bcrypt from "bcryptjs"
 import { encrypt, decrypt } from "@/lib/encryption"
+import { parseRoles } from "@/lib/role-utils"
 
 export async function getPengurusList() {
   const allPengurus = await prisma.ustadzProfile.findMany({
@@ -22,12 +23,8 @@ export async function getPengurusList() {
   // Filter to only show users with PENGURUS role (supports multi-role)
   const pengurusList = allPengurus.filter(pengurus => {
     if (!pengurus.user) return false
-    try {
-      const rolesArray = pengurus.user.roles ? JSON.parse(pengurus.user.roles) : [pengurus.user.role]
-      return rolesArray.includes('PENGURUS')
-    } catch {
-      return pengurus.user.role === 'PENGURUS'
-    }
+    const rolesArray = parseRoles(pengurus.user.roles) || [pengurus.user.role]
+    return rolesArray.includes('PENGURUS')
   })
 
   // Decrypt sensitive fields
