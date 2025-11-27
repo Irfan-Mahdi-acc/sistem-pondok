@@ -3,8 +3,6 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Download, FileSpreadsheet, Loader2, Mail } from 'lucide-react'
-import { exportRaportToExcel, generateBatchPDF } from '@/lib/export-utils'
-import { exportRaportForMailMerge } from '@/lib/export-mail-merge'
 import { Progress } from '@/components/ui/progress'
 import {
   DropdownMenu,
@@ -41,9 +39,10 @@ export function ExportRaportButtons({
   const [isExportingPDF, setIsExportingPDF] = useState(false)
   const [pdfProgress, setPdfProgress] = useState(0)
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
     setIsExportingExcel(true)
     try {
+      const { exportRaportToExcel } = await import('@/lib/export-utils')
       exportRaportToExcel(kelasName, semester, students, nilaiData, ujianHifdzData, categories)
     } catch (error) {
       console.error('Error exporting Excel:', error)
@@ -53,9 +52,10 @@ export function ExportRaportButtons({
     }
   }
 
-  const handleExportMailMerge = () => {
+  const handleExportMailMerge = async () => {
     setIsExportingMailMerge(true)
     try {
+      const { exportRaportForMailMerge } = await import('@/lib/export-mail-merge')
       const result = exportRaportForMailMerge(
         kelasName,
         semester,
@@ -79,6 +79,7 @@ export function ExportRaportButtons({
     setIsExportingPDF(true)
     setPdfProgress(0)
     try {
+      const { generateBatchPDF } = await import('@/lib/export-utils')
       await generateBatchPDF(
         students,
         kelasName,

@@ -13,7 +13,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { generateStudentPDF } from "@/lib/export-utils"
 
 interface RaportCardProps {
   student: any
@@ -77,9 +76,10 @@ export function RaportCard({
     window.print()
   }
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     setIsGeneratingPDF(true)
     try {
+      const { generateStudentPDF } = await import('@/lib/export-utils')
       generateStudentPDF(student, kelasName, semester, nilaiData, ujianHifdzData, categories)
     } catch (error) {
       console.error('Error generating PDF:', error)

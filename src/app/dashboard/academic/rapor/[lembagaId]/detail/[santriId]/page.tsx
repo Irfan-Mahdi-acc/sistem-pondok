@@ -4,8 +4,20 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, FileDown, User, GraduationCap, TrendingUp } from "lucide-react"
 import Link from "next/link"
+import dynamic from "next/dynamic"
 import { RaporDetailTable } from "@/components/rapor/rapor-detail-table"
-import { RaporChart } from "@/components/rapor/rapor-chart"
+
+const RaporChart = dynamic(
+  () => import("@/components/rapor/rapor-chart").then((mod) => mod.RaporChart),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-[400px] items-center justify-center text-sm text-muted-foreground">
+        Memuat grafik...
+      </div>
+    ),
+  }
+)
 
 export default async function RaporDetailPage({
   params

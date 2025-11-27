@@ -20,7 +20,6 @@ import {
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Upload, Download, FileSpreadsheet } from "lucide-react"
-import * as XLSX from 'xlsx'
 import { bulkImportSantri } from "@/actions/santri-actions"
 
 export function BulkImportSantriDialog({ lembagas, kelasList }: { lembagas: any[], kelasList: any[] }) {
@@ -29,74 +28,80 @@ export function BulkImportSantriDialog({ lembagas, kelasList }: { lembagas: any[
   const [file, setFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
 
-  const handleDownloadTemplate = () => {
+  const handleDownloadTemplate = async () => {
     if (!selectedLembaga) {
       alert('Pilih lembaga terlebih dahulu')
       return
     }
 
-    const lembaga = lembagas.find(l => l.id === selectedLembaga)
-    const lembagaKelas = kelasList.filter(k => k.lembagaId === selectedLembaga)
+    try {
+      const XLSX = await import('xlsx')
+      const lembaga = lembagas.find(l => l.id === selectedLembaga)
+      const lembagaKelas = kelasList.filter(k => k.lembagaId === selectedLembaga)
 
-    // Create template data
-    const templateData = [
-      {
-        'NIS': 'Contoh: 2024001',
-        'NISN': 'Contoh: 0012345678',
-        'Nama Lengkap': 'Contoh: Ahmad Zaki',
-        'Jenis Kelamin': 'L atau P',
-        'Tempat Lahir': 'Contoh: Jakarta',
-        'Tanggal Lahir': 'Format: YYYY-MM-DD (Contoh: 2010-01-15)',
-        'Alamat': 'Contoh: Jl. Merdeka No. 123',
-        'Telepon': 'Contoh: 081234567890',
-        'Email': 'Contoh: ahmad@email.com',
-        'Nama Ayah': 'Contoh: Budi Santoso',
-        'Telepon Ayah': 'Contoh: 081234567890',
-        'Pekerjaan Ayah': 'Contoh: Wiraswasta',
-        'Nama Ibu': 'Contoh: Siti Aminah',
-        'Telepon Ibu': 'Contoh: 081234567890',
-        'Pekerjaan Ibu': 'Contoh: Ibu Rumah Tangga',
-        'Nama Wali': 'Opsional',
-        'Telepon Wali': 'Opsional',
-        'Hubungan Wali': 'Opsional',
-        'Kelas': lembagaKelas.length > 0 ? `Pilih: ${lembagaKelas.map(k => k.name).join(', ')}` : 'Kosongkan jika belum ada',
-        'Tanggal Masuk': 'Format: YYYY-MM-DD (Contoh: 2024-07-01)',
-        'Status': 'ACTIVE (default)',
-      }
-    ]
+      // Create template data
+      const templateData = [
+        {
+          'NIS': 'Contoh: 2024001',
+          'NISN': 'Contoh: 0012345678',
+          'Nama Lengkap': 'Contoh: Ahmad Zaki',
+          'Jenis Kelamin': 'L atau P',
+          'Tempat Lahir': 'Contoh: Jakarta',
+          'Tanggal Lahir': 'Format: YYYY-MM-DD (Contoh: 2010-01-15)',
+          'Alamat': 'Contoh: Jl. Merdeka No. 123',
+          'Telepon': 'Contoh: 081234567890',
+          'Email': 'Contoh: ahmad@email.com',
+          'Nama Ayah': 'Contoh: Budi Santoso',
+          'Telepon Ayah': 'Contoh: 081234567890',
+          'Pekerjaan Ayah': 'Contoh: Wiraswasta',
+          'Nama Ibu': 'Contoh: Siti Aminah',
+          'Telepon Ibu': 'Contoh: 081234567890',
+          'Pekerjaan Ibu': 'Contoh: Ibu Rumah Tangga',
+          'Nama Wali': 'Opsional',
+          'Telepon Wali': 'Opsional',
+          'Hubungan Wali': 'Opsional',
+          'Kelas': lembagaKelas.length > 0 ? `Pilih: ${lembagaKelas.map(k => k.name).join(', ')}` : 'Kosongkan jika belum ada',
+          'Tanggal Masuk': 'Format: YYYY-MM-DD (Contoh: 2024-07-01)',
+          'Status': 'ACTIVE (default)',
+        }
+      ]
 
-    // Create workbook
-    const ws = XLSX.utils.json_to_sheet(templateData)
-    const wb = XLSX.utils.book_new()
-    XLSX.utils.book_append_sheet(wb, ws, 'Template Santri')
+      // Create workbook
+      const ws = XLSX.utils.json_to_sheet(templateData)
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, 'Template Santri')
 
-    // Set column widths
-    ws['!cols'] = [
-      { wch: 15 }, // NIS
-      { wch: 15 }, // NISN
-      { wch: 25 }, // Nama
-      { wch: 15 }, // Gender
-      { wch: 20 }, // Tempat Lahir
-      { wch: 25 }, // Tanggal Lahir
-      { wch: 40 }, // Alamat
-      { wch: 20 }, // Telepon
-      { wch: 25 }, // Email
-      { wch: 25 }, // Nama Ayah
-      { wch: 20 }, // Telepon Ayah
-      { wch: 20 }, // Pekerjaan Ayah
-      { wch: 25 }, // Nama Ibu
-      { wch: 20 }, // Telepon Ibu
-      { wch: 20 }, // Pekerjaan Ibu
-      { wch: 25 }, // Nama Wali
-      { wch: 20 }, // Telepon Wali
-      { wch: 20 }, // Hubungan Wali
-      { wch: 30 }, // Kelas
-      { wch: 25 }, // Tanggal Masuk
-      { wch: 15 }, // Status
-    ]
+      // Set column widths
+      ws['!cols'] = [
+        { wch: 15 }, // NIS
+        { wch: 15 }, // NISN
+        { wch: 25 }, // Nama
+        { wch: 15 }, // Gender
+        { wch: 20 }, // Tempat Lahir
+        { wch: 25 }, // Tanggal Lahir
+        { wch: 40 }, // Alamat
+        { wch: 20 }, // Telepon
+        { wch: 25 }, // Email
+        { wch: 25 }, // Nama Ayah
+        { wch: 20 }, // Telepon Ayah
+        { wch: 20 }, // Pekerjaan Ayah
+        { wch: 25 }, // Nama Ibu
+        { wch: 20 }, // Telepon Ibu
+        { wch: 20 }, // Pekerjaan Ibu
+        { wch: 25 }, // Nama Wali
+        { wch: 20 }, // Telepon Wali
+        { wch: 20 }, // Hubungan Wali
+        { wch: 30 }, // Kelas
+        { wch: 25 }, // Tanggal Masuk
+        { wch: 15 }, // Status
+      ]
 
-    // Download
-    XLSX.writeFile(wb, `Template_Santri_${lembaga.name}.xlsx`)
+      // Download
+      XLSX.writeFile(wb, `Template_Santri_${lembaga?.name ?? 'Lembaga'}.xlsx`)
+    } catch (error) {
+      console.error('Gagal membuat template Excel:', error)
+      alert('Gagal membuat template Excel. Silakan coba lagi.')
+    }
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,6 +119,7 @@ export function BulkImportSantriDialog({ lembagas, kelasList }: { lembagas: any[
     setIsProcessing(true)
 
     try {
+      const XLSX = await import('xlsx')
       const data = await file.arrayBuffer()
       const workbook = XLSX.read(data)
       const worksheet = workbook.Sheets[workbook.SheetNames[0]]

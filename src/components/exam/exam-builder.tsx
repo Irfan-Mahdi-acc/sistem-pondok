@@ -1,6 +1,5 @@
 'use client'
 
-import { exportToWord } from "@/lib/export-to-word"
 import { FileText, Pencil, Plus, Trash2, ArrowUp, ArrowDown, Type, Heading, Loader2 } from "lucide-react"
 import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
@@ -120,6 +119,7 @@ export function ExamBuilder({
   async function handleExportWord() {
     setIsExporting(true)
     try {
+      const { exportToWord } = await import("@/lib/export-to-word")
       const exportQuestions = questions.map((q: any) => ({
         id: q.id,
         question: q.questionBank ? q.questionBank.question : q.directQuestion,
