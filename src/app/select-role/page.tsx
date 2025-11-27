@@ -36,31 +36,31 @@ export default async function SelectRolePage() {
           <h1 className="text-3xl font-bold tracking-tight mb-2">
             Selamat Datang, {session.user.name}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mb-2">
             Pilih role untuk melanjutkan ke dashboard
           </p>
+          <Badge variant="secondary" className="text-xs">
+            {roles.length} Role Tersedia
+          </Badge>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {roles.map((role) => (
             <form key={role} action={`/api/auth/select-role`} method="POST">
               <input type="hidden" name="role" value={role} />
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
-                <CardHeader className="text-center">
-                  <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                    <UserCircle className="w-10 h-10 text-primary" />
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer group border-2 hover:border-primary/50">
+                <CardHeader className="text-center pb-3">
+                  <div className="mx-auto mb-3 w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                    <UserCircle className="w-8 h-8 text-primary" />
                   </div>
-                  <CardTitle className="text-xl">{getRoleDisplayName(role)}</CardTitle>
+                  <CardTitle className="text-lg">{getRoleDisplayName(role)}</CardTitle>
                 </CardHeader>
-                <CardContent className="text-center">
-                  <Badge variant="outline" className="mb-4">
-                    {role}
-                  </Badge>
-                  <p className="text-sm text-muted-foreground mb-4">
+                <CardContent className="text-center pt-0">
+                  <p className="text-xs text-muted-foreground mb-3">
                     {getRoleDescription(role)}
                   </p>
-                  <Button type="submit" className="w-full">
-                    Masuk sebagai {getRoleDisplayName(role)}
+                  <Button type="submit" className="w-full" size="sm">
+                    Masuk
                   </Button>
                 </CardContent>
               </Card>
@@ -70,7 +70,7 @@ export default async function SelectRolePage() {
 
         <div className="text-center mt-8">
           <form action="/api/auth/signout" method="POST">
-            <Button variant="ghost" type="submit">
+            <Button variant="ghost" type="submit" size="sm">
               Keluar
             </Button>
           </form>

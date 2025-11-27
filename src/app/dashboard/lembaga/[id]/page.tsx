@@ -1,10 +1,12 @@
-import { getLembagas } from "@/actions/lembaga-actions"
+import { getLembagas, getLembagaById } from "@/actions/lembaga-actions"
 import { getJadwalByLembaga, getJamPelajaranByLembaga } from "@/actions/jadwal-actions"
 import { getUstadzList } from "@/actions/mapel-actions"
 import { getKelasList } from "@/actions/kelas-actions"
 import { notFound } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { JadwalPelajaranTable } from "@/components/jadwal/jadwal-pelajaran-table"
+import { AssignMudirDialog } from "@/components/lembaga/assign-mudir-dialog"
+import { Badge } from "@/components/ui/badge"
 
 export default async function LembagaDetailPage({
   params,
@@ -12,15 +14,13 @@ export default async function LembagaDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const [lembagas, jadwals, jamPelajaran, ustadzList, kelasList] = await Promise.all([
-    getLembagas(),
+  const [lembaga, jadwals, jamPelajaran, ustadzList, kelasList] = await Promise.all([
+    getLembagaById(id),
     getJadwalByLembaga(id),
     getJamPelajaranByLembaga(id),
     getUstadzList(),
     getKelasList()
   ])
-  
-  const lembaga = lembagas.find((l) => l.id === id)
 
   if (!lembaga) {
     notFound()
@@ -31,6 +31,37 @@ export default async function LembagaDetailPage({
 
   return (
     <div className="space-y-6">
+      {/* Mudir Section */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Mudir (Kepala Lembaga)</CardTitle>
+          </div>
+          <AssignMudirDialog 
+            lembagaId={lembaga.id}
+            currentMudirId={lembaga.mudirId}
+            ustadzList={ustadzList}
+          />
+        </CardHeader>
+        <CardContent>
+          {lembaga.mudir ? (
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                <span className="text-lg font-semibold text-primary">
+                  {lembaga.mudir.user?.name?.charAt(0) || 'U'}
+                </span>
+              </div>
+              <div>
+                <p className="font-medium">{lembaga.mudir.user?.name || 'Unnamed'}</p>
+                <Badge variant="outline" className="mt-1">Mudir</Badge>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Belum ada mudir yang ditugaskan</p>
+          )}
+        </CardContent>
+      </Card>
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

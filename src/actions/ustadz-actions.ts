@@ -225,14 +225,16 @@ export async function getUsersWithoutUstadzProfile() {
 
 export async function getAvailableUsers() {
   try {
-    // Get users with role USTADZ that don't have ustadz profile linked
+    // Get users that already have ustadz profile linked
     const usersWithProfile = await prisma.ustadzProfile.findMany({
       select: { userId: true }
     })
     const linkedUserIds = usersWithProfile.map(u => u.userId).filter(Boolean)
     
     // Get all users not linked yet and not temp users
-    const allUsers = await prisma.user.findMany({
+    // Show ALL available users, not just those with USTADZ role
+    // USTADZ role will be added automatically when linking
+    const users = await prisma.user.findMany({
       where: {
         id: {
           notIn: linkedUserIds
@@ -252,12 +254,6 @@ export async function getAvailableUsers() {
         roles: true,
       },
       orderBy: { name: 'asc' }
-    })
-    
-    // Filter users that have USTADZ role (either in role or roles array)
-    const users = allUsers.filter(user => {
-      const rolesArray = parseRoles(user.roles) || [user.role]
-      return rolesArray.includes('USTADZ')
     })
     
     return users
@@ -282,13 +278,42 @@ export async function updateUstadzStatus(id: string, status: string) {
 
 export async function linkUstadzToUser(ustadzId: string, userId: string) {
   try {
+    // Get the user to check their current roles
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true, roles: true }
+    })
+
+    if (!user) {
+      return { success: false, error: 'User tidak ditemukan' }
+    }
+
+    // Check if user already has USTADZ role
+    const currentRoles = parseRoles(user.roles) || [user.role]
+    const hasUstadzRole = currentRoles.includes('USTADZ')
+
+    // If user doesn't have USTADZ role, add it
+    if (!hasUstadzRole) {
+      const newRoles = [...currentRoles, 'USTADZ']
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          roles: JSON.stringify(newRoles)
+        }
+      })
+    }
+
+    // Link ustadz profile to user
     await prisma.ustadzProfile.update({
       where: { id: ustadzId },
       data: { userId }
     })
+    
     revalidatePath('/dashboard/ustadz')
+    revalidatePath('/dashboard/users')
     return { success: true }
   } catch (error) {
-    return { success: false, error: 'Failed to link ustadz to user' }
+    console.error('Link ustadz to user error:', error)
+    return { success: false, error: 'Gagal menghubungkan ustadz ke user' }
   }
 }

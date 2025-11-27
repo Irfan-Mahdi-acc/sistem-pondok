@@ -86,15 +86,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session
     },
     async redirect({ url, baseUrl }) {
+      // Force localhost instead of 0.0.0.0
+      const correctBaseUrl = baseUrl.replace('0.0.0.0', 'localhost')
+      const correctedUrl = url.replace('0.0.0.0', 'localhost')
+      
       // If redirecting after login
-      if (url === baseUrl || url === `${baseUrl}/login`) {
-        return `${baseUrl}/select-role`
+      if (correctedUrl === correctBaseUrl || correctedUrl === `${correctBaseUrl}/login`) {
+        return `${correctBaseUrl}/select-role`
       }
       // Allow callback URLs on the same origin
-      if (url.startsWith(baseUrl)) {
-        return url
+      if (correctedUrl.startsWith(correctBaseUrl)) {
+        return correctedUrl
       }
-      return baseUrl
+      return correctBaseUrl
     },
   },
   pages: {

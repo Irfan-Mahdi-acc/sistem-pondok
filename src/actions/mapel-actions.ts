@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
+import { getCurrentUserWithProfile, canEditMapel, getAccessibleMapelIds, isAdmin } from "@/lib/permissions"
 
 const MapelSchema = z.object({
   name: z.string().min(1, "Nama mata pelajaran harus diisi"),
@@ -14,7 +15,14 @@ const MapelSchema = z.object({
 
 // Get all mapels across all institutions for global view
 export async function getAllMapelsGlobal() {
+  const user = await getCurrentUserWithProfile()
+  if (!user) return []
+
+  const accessibleIds = getAccessibleMapelIds(user)
+  const whereClause = isAdmin(user) ? {} : { id: { in: accessibleIds } }
+
   return await prisma.mapel.findMany({
+    where: whereClause,
     include: {
       kelas: {
         include: {
@@ -100,6 +108,14 @@ export async function createMapel(formData: FormData) {
 }
 
 export async function updateMapel(id: string, formData: FormData) {
+  const user = await getCurrentUserWithProfile()
+  if (!user) return { success: false, error: 'Unauthorized' }
+
+  // Check permission
+  if (!canEditMapel(user, id)) {
+    return { success: false, error: 'Anda tidak memiliki akses untuk mengedit mapel ini' }
+  }
+
   const rawData = {
     name: formData.get('name'),
     code: formData.get('code'),
@@ -133,6 +149,14 @@ export async function updateMapel(id: string, formData: FormData) {
 }
 
 export async function deleteMapel(id: string) {
+  const user = await getCurrentUserWithProfile()
+  if (!user) return { success: false, error: 'Unauthorized' }
+
+  // Check permission
+  if (!canEditMapel(user, id)) {
+    return { success: false, error: 'Anda tidak memiliki akses untuk menghapus mapel ini' }
+  }
+
   try {
     await prisma.mapel.delete({
       where: { id },

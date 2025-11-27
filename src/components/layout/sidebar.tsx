@@ -21,6 +21,7 @@ import {
   Menu,
   X,
   FileText,
+  UserPlus,
 } from 'lucide-react'
 import { AppLogo } from './app-logo'
 import { Button } from '@/components/ui/button'
@@ -54,6 +55,7 @@ const academicItems = [
   { href: '/dashboard/academic/calendar', label: 'Kalender Akademik', icon: Calendar },
   { href: '/dashboard/academic/mapel', label: 'Mata Pelajaran', icon: BookOpen },
   { href: '/dashboard/academic/nilai-raport', label: 'Nilai & Raport', icon: FileText },
+  { href: '/dashboard/academic/kenaikan-kelas', label: 'Kenaikan Kelas', icon: GraduationCap },
 ]
 
 const halqohHifdzItems = [
@@ -65,12 +67,14 @@ const financeItems = [
   { href: '/dashboard/finance/billing', label: 'Tagihan', icon: DollarSign },
   { href: '/dashboard/finance/payments', label: 'Pembayaran', icon: DollarSign },
   { href: '/dashboard/finance/transactions', label: 'Transaksi', icon: DollarSign },
-  { href: '/dashboard/finance/bookkeeping', label: 'Pembukuan', icon: BookOpen },
+  { href: '/dashboard/finance/bookkeeping', label: 'Laporan Keuangan', icon: BookOpen },
+  { href: '/dashboard/finance/bookkeeping-management', label: 'Manajemen Pembukuan', icon: BookOpen },
 ]
 
 const settingsItems = [
   { href: '/dashboard/settings', label: 'Pengaturan Aplikasi', icon: Settings },
   { href: '/dashboard/users', label: 'Pengguna', icon: Users },
+  { href: '/dashboard/users/registrations', label: 'Pendaftaran Akun', icon: UserPlus },
   { href: '/dashboard/roles', label: 'Role & Izin', icon: Shield },
 ]
 

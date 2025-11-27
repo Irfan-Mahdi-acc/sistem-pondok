@@ -119,7 +119,7 @@ export function ManageUstadzUserDialog({
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  User dengan role USTADZ yang belum terhubung
+                  Semua user yang belum terhubung (role USTADZ akan otomatis ditambahkan)
                 </p>
               </div>
 

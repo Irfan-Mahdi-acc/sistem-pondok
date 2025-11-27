@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
+import { getCurrentUserWithProfile, getLembagaAccessFilter } from "@/lib/permissions"
 
 const LembagaSchema = z.object({
   name: z.string().min(3),
@@ -14,7 +15,13 @@ const LembagaSchema = z.object({
 })
 
 export async function getLembagas() {
+  const user = await getCurrentUserWithProfile()
+  if (!user) return []
+
+  const accessFilter = getLembagaAccessFilter(user)
+
   return await prisma.lembaga.findMany({
+    where: accessFilter,
     orderBy: { name: 'asc' },
     include: {
       _count: {
@@ -28,6 +35,11 @@ export async function getLembagaById(id: string) {
   return await prisma.lembaga.findUnique({
     where: { id },
     include: {
+      mudir: {
+        include: {
+          user: true
+        }
+      },
       _count: {
         select: { santris: true, kelas: true }
       }
@@ -111,6 +123,21 @@ export async function updateLembaga(id: string, formData: FormData) {
     console.error('Database error updating lembaga:', error)
     const errorMessage = error instanceof Error ? error.message : 'Failed to update lembaga'
     return { success: false, error: errorMessage }
+  }
+}
+
+export async function updateMudir(lembagaId: string, ustadzId: string | null) {
+  try {
+    await prisma.lembaga.update({
+      where: { id: lembagaId },
+      data: { mudirId: ustadzId }
+    })
+    revalidatePath(`/dashboard/lembaga/${lembagaId}`)
+    revalidatePath('/dashboard/lembaga')
+    return { success: true }
+  } catch (error) {
+    console.error('Update mudir error:', error)
+    return { success: false, error: 'Failed to update mudir' }
   }
 }
 

@@ -60,3 +60,4 @@ export function hasAllRoles(user: any, requiredRoles: string[]): boolean {
   return requiredRoles.every(role => roles.includes(role))
 }
 
+

@@ -25,6 +25,7 @@ model User {
   santriProfile       Santri?
   permissions         UserPermission[]
   ustadzProfile       UstadzProfile?
+  bookkeepingAssignments BookkeepingAssignment[]
 }
 
 model Role {
@@ -121,6 +122,11 @@ model Lembaga {
   logoUrl           String?
   jenjang           String?
   tags              String?
+  
+  // Mudir (Kepala Lembaga)
+  mudirId           String?
+  mudir             UstadzProfile?         @relation("LembagaMudir", fields: [mudirId], references: [id])
+  
   academicCalendars AcademicCalendar[]
   academicYears     AcademicYear[]
   eventLembagas     EventLembaga[]
@@ -133,6 +139,8 @@ model Lembaga {
   nilais            Nilai[]
   pdfLayoutSettings PDFLayoutSettings?
   santris           Santri[]
+  documents         DocumentArchive[]
+  bookkeepings      Bookkeeping[]
 }
 
 model LembagaGradeCategory {
@@ -294,6 +302,7 @@ model UstadzProfile {
   asramaMusyrif   Asrama[]
   halqohs         Halqoh[]
   homeroomClasses Kelas[]   @relation("HomeroomTeacher")
+  lembagaAsMudir  Lembaga[] @relation("LembagaMudir")
   mapels          Mapel[]
   tahfidzRecords  Tahfidz[]
   user            User?     @relation(fields: [userId], references: [id])
@@ -553,17 +562,22 @@ model TransactionCategory {
 }
 
 model Transaction {
-  id          String              @id @default(cuid())
-  categoryId  String
-  amount      Float
-  type        String
-  date        DateTime            @default(now())
-  description String
-  reference   String?
-  recordedBy  String?
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
-  category    TransactionCategory @relation(fields: [categoryId], references: [id])
+  id            String              @id @default(cuid())
+  categoryId    String
+  bookkeepingId String?             // Link to bookkeeping (optional for backward compatibility)
+  amount        Float
+  type          String
+  date          DateTime            @default(now())
+  description   String
+  reference     String?
+  recordedBy    String?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  category      TransactionCategory @relation(fields: [categoryId], references: [id])
+  bookkeeping   Bookkeeping?        @relation(fields: [bookkeepingId], references: [id])
+  
+  @@index([bookkeepingId])
+  @@index([date])
 }
 
 model KelasHistory {
@@ -747,13 +761,24 @@ model PSBRegistration {
 model DocumentArchive {
   id          String   @id @default(cuid())
   title       String
-  type        String
-  number      String?
+  type        String   // Jenis surat (lihat DOCUMENT_TYPES)
+  number      String?  // Auto-generated
   date        DateTime
   sender      String?
   recipient   String?
   fileUrl     String
   description String?
+  
+  // Lembaga (optional - null jika surat umum pondok)
+  lembagaId   String?
+  lembaga     Lembaga? @relation(fields: [lembagaId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([lembagaId])
+  @@index([type])
+  @@index([date])
 }
 
 model RadioSchedule {
@@ -764,6 +789,83 @@ model RadioSchedule {
   host      String?
   topic     String?
   streamUrl String?
+}
+
+model AgendaKantor {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  date        DateTime
+  startTime   String?  // "09:00"
+  endTime     String?  // "11:00"
+  location    String?
+  type        String   // "RAPAT", "ACARA", "DEADLINE", "LAINNYA"
+  status      String   @default("PLANNED") // "PLANNED", "ONGOING", "COMPLETED", "CANCELLED"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Bookkeeping System - Multi-level (Umum/Lembaga/Custom)
+model Bookkeeping {
+  id           String                  @id @default(cuid())
+  name         String                  // e.g., "Pembukuan Umum", "Pembukuan Lembaga A", "Kas Masjid"
+  type         String                  // "UMUM", "LEMBAGA", "CUSTOM"
+  lembagaId    String?                 // For LEMBAGA type
+  description  String?
+  status       String                  @default("ACTIVE") // "ACTIVE", "ARCHIVED"
+  createdBy    String
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+  
+  lembaga      Lembaga?                @relation(fields: [lembagaId], references: [id])
+  assignments  BookkeepingAssignment[]
+  transactions Transaction[]
+  
+  @@index([type])
+  @@index([lembagaId])
+  @@index([status])
+}
+
+// Assignment: Pengurus assigned to manage specific bookkeeping
+model BookkeepingAssignment {
+  id            String      @id @default(cuid())
+  bookkeepingId String
+  userId        String      // User (Pengurus/Bendahara)
+  role          String      // "MANAGER", "VIEWER", "EDITOR"
+  assignedAt    DateTime    @default(now())
+  assignedBy    String?     // Admin who assigned
+  
+  bookkeeping   Bookkeeping @relation(fields: [bookkeepingId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id])
+  
+  @@unique([bookkeepingId, userId])
+  @@index([userId])
+  @@index([bookkeepingId])
+}
+
+// User Registration with Admin Approval
+model UserRegistration {
+  id                String   @id @default(cuid())
+  name              String
+  username          String   @unique
+  email             String?
+  phone             String?
+  requestedRole     String   // Role yang diminta
+  reason            String?  // Alasan pendaftaran
+  status            String   @default("PENDING") // "PENDING", "APPROVED", "REJECTED"
+  
+  // Admin review
+  reviewedBy        String?  // User ID admin yang review
+  reviewedAt        DateTime?
+  reviewNotes       String?  // Catatan dari admin
+  
+  // Link to created user (after approval)
+  userId            String?  @unique
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@index([status])
 }
 
 model GradeSetting {

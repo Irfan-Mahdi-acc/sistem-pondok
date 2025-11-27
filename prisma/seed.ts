@@ -12,12 +12,14 @@ async function main() {
       password,
       name: 'Irfan Mahdi',
       role: 'SUPER_ADMIN',
+      roles: JSON.stringify(['SUPER_ADMIN', 'ADMIN']),
     },
     create: {
       username: 'irfanmahdi.dev@gmail.com',
       password,
       name: 'Irfan Mahdi',
       role: 'SUPER_ADMIN',
+      roles: JSON.stringify(['SUPER_ADMIN', 'ADMIN']),
     },
   })
 

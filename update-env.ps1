@@ -92,3 +92,4 @@ Write-Host ""
 Write-Host "Next step: Run 'npx prisma generate'" -ForegroundColor Cyan
 Write-Host ""
 
+
