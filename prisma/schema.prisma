@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // --- Authentication & Roles ---
@@ -15,7 +16,7 @@ model User {
   password  String
   name      String
   role      String   // DEPRECATED: Use roles instead. Values: "SUPER_ADMIN", "ADMIN", "MUDIR", "USTADZ", "BENDAHARA", "STAFF", "SANTRI", "WALI", "PENGURUS", "ADMIN_KANTOR", "WALI_SANTRI", "MUSYRIF"
-  roles     String   @default("[]") // NEW: JSON array of roles, e.g. ["USTADZ", "PENGURUS"]
+  roles     Json     @default("[]") // NEW: JSON array of roles, e.g. ["USTADZ", "PENGURUS"] - PostgreSQL Json type
   avatarUrl String?
   
   // Security fields

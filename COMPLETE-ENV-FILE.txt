@@ -1,0 +1,66 @@
+# ===========================================
+# COMPLETE .env FILE CONFIGURATION
+# Sistem Web Pondok Tadzimussunnah
+# ===========================================
+# Copy this entire content to your .env file
+
+# ===========================================
+# DATABASE - Supabase PostgreSQL
+# ===========================================
+
+# Direct Connection (for Prisma Migrations)
+DIRECT_URL="postgresql://postgres:Mzf_RbLg7Runiwa@db.lvlthftraeqqyveolzsm.supabase.co:5432/postgres"
+
+# Session Pooling (for Prisma Client)
+DATABASE_URL="postgresql://postgres.lvlthftraeqqyveolzsm:Mzf_RbLg7Runiwa@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+
+# ===========================================
+# SUPABASE API KEYS
+# ===========================================
+
+NEXT_PUBLIC_SUPABASE_URL="https://lvlthftraeqqyveolzsm.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2bHRoZnRyYWVxcXl2ZW9senNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMTg3MjMsImV4cCI6MjA3OTc5NDcyM30.arOWLoTYwSL2P-03Ht1Mf4R_OmaI9wglmNdHJhw5Bkk"
+SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2bHRoZnRyYWVxcXl2ZW9senNtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NDIxODcyMywiZXhwIjoyMDc5Nzk0NzIzfQ.nxEPpNP-_AKohDpsAjmPtoKBw8wwnF95fw_PFxq3sj0"
+
+# ===========================================
+# AUTHENTICATION - NextAuth
+# ===========================================
+# IMPORTANT: Copy these from your existing .env file!
+# If you don't have them, generate new ones:
+
+NEXTAUTH_SECRET="your-existing-nextauth-secret-min-32-chars"
+NEXTAUTH_URL="http://localhost:3000"
+
+# ===========================================
+# ENCRYPTION (for sensitive data)
+# ===========================================
+# IMPORTANT: Copy this from your existing .env file!
+# If you don't have it, generate a new 32-char key
+
+ENCRYPTION_KEY="your-existing-encryption-key-32-chars"
+
+# ===========================================
+# OPTIONAL: Security Settings
+# ===========================================
+
+MAX_LOGIN_ATTEMPTS=5
+LOCK_DURATION_MINUTES=30
+
+# ===========================================
+# BACKUP: Old SQLite Connection (for rollback)
+# ===========================================
+# Keep this commented for now, in case you need to rollback
+
+# DATABASE_URL="file:./dev.db"
+
+# ===========================================
+# INSTRUCTIONS:
+# ===========================================
+# 1. BACKUP your current .env file first!
+# 2. Copy NEXTAUTH_SECRET from your old .env
+# 3. Copy ENCRYPTION_KEY from your old .env
+# 4. Replace those values above
+# 5. Save this as your new .env file
+# 6. NEVER commit .env to Git!
+# ===========================================
+

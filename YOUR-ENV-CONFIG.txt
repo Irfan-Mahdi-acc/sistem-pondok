@@ -1,0 +1,47 @@
+# ===========================================
+# DATABASE - Supabase PostgreSQL
+# ===========================================
+
+# Direct Connection (for Migrations)
+DIRECT_URL="postgresql://postgres:Mzf_RbLg7Runiwa@db.lvlthftraeqqyveolzsm.supabase.co:5432/postgres"
+
+# Session Pooling (for Prisma Client)
+DATABASE_URL="postgresql://postgres.lvlthftraeqqyveolzsm:Mzf_RbLg7Runiwa@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+
+# ===========================================
+# SUPABASE API
+# ===========================================
+
+NEXT_PUBLIC_SUPABASE_URL="https://lvlthftraeqqyveolzsm.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx2bHRoZnRyYWVxcXl2ZW9senNtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMTg3MjMsImV4cCI6MjA3OTc5NDcyM30.arOWLoTYwSL2P-03Ht1Mf4R_OmaI9wglmNdHJhw5Bkk"
+SUPABASE_SERVICE_ROLE_KEY="[PASTE-YOUR-SERVICE-ROLE-KEY-HERE]"
+
+# ===========================================
+# AUTHENTICATION - NextAuth
+# ===========================================
+
+NEXTAUTH_SECRET="your-existing-secret-from-current-env"
+NEXTAUTH_URL="http://localhost:3000"
+
+# ===========================================
+# ENCRYPTION
+# ===========================================
+
+ENCRYPTION_KEY="your-existing-encryption-key-from-current-env"
+
+# ===========================================
+# OPTIONAL
+# ===========================================
+
+MAX_LOGIN_ATTEMPTS=5
+LOCK_DURATION_MINUTES=30
+
+# ===========================================
+# INSTRUCTIONS:
+# ===========================================
+# 1. Replace [PASTE-YOUR-SERVICE-ROLE-KEY-HERE] with service_role key from Supabase
+# 2. Copy NEXTAUTH_SECRET from your current .env file
+# 3. Copy ENCRYPTION_KEY from your current .env file
+# 4. Save this as your .env file (backup old .env first!)
+# 5. DO NOT commit .env to Git!
+
