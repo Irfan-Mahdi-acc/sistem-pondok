@@ -60,6 +60,7 @@ const SantriSchema = z.object({
   halqohId: emptyToNull,
 })
 
+// Get all santri (for backwards compatibility, no pagination)
 export async function getSantriList() {
   const santriList = await prisma.santri.findMany({
     include: {
@@ -91,6 +92,79 @@ export async function getSantriList() {
     waliNik: santri.waliNik ? decrypt(santri.waliNik) : null,
     waliPhone: santri.waliPhone ? decrypt(santri.waliPhone) : null,
   }))
+}
+
+// NEW: Paginated santri list with search
+export async function getSantriListPaginated(
+  page: number = 1,
+  limit: number = 20,
+  search?: string,
+  lembagaId?: string,
+  kelasId?: string,
+  status?: string
+) {
+  // Build where clause
+  const where: any = {}
+  
+  if (search) {
+    where.OR = [
+      { nis: { contains: search } },
+      { nama: { contains: search } },
+      { nisn: { contains: search } }
+    ]
+  }
+  
+  if (lembagaId) where.lembagaId = lembagaId
+  if (kelasId) where.kelasId = kelasId
+  if (status) where.status = status
+
+  // Get paginated data and total count in parallel
+  const [santriList, total] = await Promise.all([
+    prisma.santri.findMany({
+      where,
+      include: {
+        lembaga: true,
+        kelas: true,
+        asrama: true,
+        halqoh: true,
+        _count: {
+          select: {
+            nilais: true,
+            tahfidzRecords: true,
+            violations: true,
+          }
+        }
+      },
+      orderBy: { nama: 'asc' },
+      skip: (page - 1) * limit,
+      take: limit
+    }),
+    prisma.santri.count({ where })
+  ])
+
+  // Decrypt sensitive fields
+  const decryptedList = santriList.map(santri => ({
+    ...santri,
+    nikNumber: santri.nikNumber ? decrypt(santri.nikNumber) : null,
+    phone: santri.phone ? decrypt(santri.phone) : null,
+    address: santri.address ? decrypt(santri.address) : null,
+    fatherNik: santri.fatherNik ? decrypt(santri.fatherNik) : null,
+    fatherPhone: santri.fatherPhone ? decrypt(santri.fatherPhone) : null,
+    motherNik: santri.motherNik ? decrypt(santri.motherNik) : null,
+    motherPhone: santri.motherPhone ? decrypt(santri.motherPhone) : null,
+    waliNik: santri.waliNik ? decrypt(santri.waliNik) : null,
+    waliPhone: santri.waliPhone ? decrypt(santri.waliPhone) : null,
+  }))
+
+  return {
+    data: decryptedList,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit)
+    }
+  }
 }
 
 export async function getSantriById(id: string) {
