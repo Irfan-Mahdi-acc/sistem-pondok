@@ -31,6 +31,7 @@ interface EditUserDialogProps {
 
 const AVAILABLE_ROLES = [
   'ADMIN',
+  'MUDIR',
   'USTADZ',
   'PENGURUS',
   'MUSYRIF',

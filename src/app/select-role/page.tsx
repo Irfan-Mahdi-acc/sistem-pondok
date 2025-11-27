@@ -89,6 +89,7 @@ function getRoleDisplayName(role: string): string {
   const roleNames: Record<string, string> = {
     'SUPER_ADMIN': 'Super Admin',
     'ADMIN': 'Administrator',
+    'MUDIR': 'Mudir (Kepala Lembaga)',
     'USTADZ': 'Ustadz',
     'PENGURUS': 'Pengurus',
     'MUSYRIF': 'Musyrif',
@@ -104,6 +105,7 @@ function getRoleDescription(role: string): string {
   const descriptions: Record<string, string> = {
     'SUPER_ADMIN': 'Akses penuh ke seluruh sistem',
     'ADMIN': 'Mengelola data dan pengguna',
+    'MUDIR': 'Memimpin dan mengelola lembaga',
     'USTADZ': 'Mengelola pembelajaran dan santri',
     'PENGURUS': 'Mengelola administrasi pondok',
     'MUSYRIF': 'Membimbing santri di asrama',

@@ -67,6 +67,7 @@ export function AddUserDialog() {
               <SelectContent>
                 <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
                 <SelectItem value="ADMIN">Admin</SelectItem>
+                <SelectItem value="MUDIR">Mudir (Kepala Lembaga)</SelectItem>
                 <SelectItem value="USTADZ">Ustadz</SelectItem>
                 <SelectItem value="PENGURUS">Pengurus</SelectItem>
                 <SelectItem value="MUSYRIF">Musyrif</SelectItem>

@@ -504,3 +504,6 @@ const weight = weightConfig?.weight || 1.0 // fallback to 1.0
 
 *Sistem Bobot Nilai - Making grading fairer and more flexible* ⚖️
 
+
+
+

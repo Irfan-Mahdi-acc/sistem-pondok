@@ -48,3 +48,6 @@ next-env.d.ts
 # uploads - jangan commit file upload users
 /public/uploads/*
 !/public/uploads/.gitkeep
+
+# backups - jangan commit backup files
+/backups/

@@ -14,7 +14,7 @@ model User {
   username  String   @unique
   password  String
   name      String
-  role      String   // DEPRECATED: Use roles instead. Values: "SUPER_ADMIN", "ADMIN", "USTADZ", "BENDAHARA", "STAFF", "SANTRI", "WALI", "PENGURUS", "ADMIN_KANTOR", "WALI_SANTRI", "MUSYRIF"
+  role      String   // DEPRECATED: Use roles instead. Values: "SUPER_ADMIN", "ADMIN", "MUDIR", "USTADZ", "BENDAHARA", "STAFF", "SANTRI", "WALI", "PENGURUS", "ADMIN_KANTOR", "WALI_SANTRI", "MUSYRIF"
   roles     String   @default("[]") // NEW: JSON array of roles, e.g. ["USTADZ", "PENGURUS"]
   avatarUrl String?
   

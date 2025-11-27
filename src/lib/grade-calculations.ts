@@ -228,3 +228,6 @@ export function calculatePercentage(part: number, total: number): string {
   return `${((part / total) * 100).toFixed(1)}%`
 }
 
+
+
+
