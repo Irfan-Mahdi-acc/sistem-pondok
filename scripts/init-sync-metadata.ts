@@ -27,10 +27,10 @@ async function main() {
           recordCount = await prisma.kelas.count()
           break
         case 'ustadz':
-          recordCount = await prisma.ustadz.count()
+          recordCount = await prisma.ustadzProfile.count()
           break
         case 'jadwal':
-          recordCount = await prisma.jadwal.count()
+          recordCount = await prisma.jadwalPelajaran.count()
           break
       }
 
