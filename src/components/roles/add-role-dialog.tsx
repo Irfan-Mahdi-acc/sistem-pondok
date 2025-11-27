@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { createRole } from "@/actions/role-actions"
 import { useState } from "react"
-import { AVAILABLE_PERMISSIONS } from "@/lib/permissions"
+import { AVAILABLE_PERMISSIONS } from "@/lib/permission-constants"
 
 export function AddRoleDialog() {
   const [open, setOpen] = useState(false)

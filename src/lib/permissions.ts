@@ -2,6 +2,8 @@ import { auth } from '@/auth'
 import { prisma } from './prisma'
 import { cookies } from 'next/headers'
 
+// Note: For AVAILABLE_PERMISSIONS in client components, import from '@/lib/permission-constants'
+
 export type UserWithProfile = {
   id: string
   role: string
