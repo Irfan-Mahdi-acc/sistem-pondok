@@ -15,7 +15,7 @@ export default async function MusyrifPage() {
   const stats = {
     total: musyrifList.length,
     active: musyrifList.filter(m => m.status === 'ACTIVE').length,
-    linked: musyrifList.filter(m => !m.user.username.startsWith('temp_')).length,
+    linked: musyrifList.filter(m => m.user && !m.user.username.startsWith('temp_')).length,
   }
 
   return (

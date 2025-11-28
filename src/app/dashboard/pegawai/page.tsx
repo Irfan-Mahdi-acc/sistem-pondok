@@ -14,11 +14,11 @@ export default async function PegawaiPage() {
 
   const stats = {
     total: staffList.length,
-    ustadz: staffList.filter(s => s.user.role === 'USTADZ').length,
-    pengurus: staffList.filter(s => s.user.role === 'PENGURUS').length,
-    musyrif: staffList.filter(s => s.user.role === 'MUSYRIF').length,
+    ustadz: staffList.filter(s => s.user && s.user.role === 'USTADZ').length,
+    pengurus: staffList.filter(s => s.user && s.user.role === 'PENGURUS').length,
+    musyrif: staffList.filter(s => s.user && s.user.role === 'MUSYRIF').length,
     active: staffList.filter(s => s.status === 'ACTIVE').length,
-    linked: staffList.filter(s => !s.user.username.startsWith('temp_')).length,
+    linked: staffList.filter(s => s.user && !s.user.username.startsWith('temp_')).length,
   }
 
   return (
