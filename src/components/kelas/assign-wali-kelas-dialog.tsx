@@ -25,7 +25,7 @@ import { UserCircle } from 'lucide-react'
 interface AssignWaliKelasDialogProps {
   kelasId: string
   currentWaliId: string | null
-  ustadzList: Array<{ id: string; user: { name: string } }>
+  ustadzList: Array<{ id: string; user: { name: string } | null }>
 }
 
 export function AssignWaliKelasDialog({
@@ -65,11 +65,13 @@ export function AssignWaliKelasDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">Tidak ada</SelectItem>
-                {ustadzList.map((ustadz) => (
-                  <SelectItem key={ustadz.id} value={ustadz.id}>
-                    {ustadz.user.name}
-                  </SelectItem>
-                ))}
+                {ustadzList
+                  .filter(ustadz => ustadz.user !== null)
+                  .map((ustadz) => (
+                    <SelectItem key={ustadz.id} value={ustadz.id}>
+                      {ustadz.user!.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>

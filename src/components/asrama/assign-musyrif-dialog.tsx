@@ -28,7 +28,7 @@ export function AssignMusyrifDialog({
 }: { 
   asramaId: string
   currentMusyrifId: string | null
-  ustadzList: any[]
+  ustadzList: Array<{ id: string; nik?: string | null; user: { name: string } | null }>
 }) {
   const [open, setOpen] = useState(false)
   const [selectedUstadz, setSelectedUstadz] = useState<string>('')
@@ -75,11 +75,13 @@ export function AssignMusyrifDialog({
                 <SelectValue placeholder="Pilih ustadz" />
               </SelectTrigger>
               <SelectContent>
-                {ustadzList.map((ustadz) => (
-                  <SelectItem key={ustadz.id} value={ustadz.id}>
-                    {ustadz.user.name} {ustadz.nik ? `- ${ustadz.nik}` : ''}
-                  </SelectItem>
-                ))}
+                {ustadzList
+                  .filter(ustadz => ustadz.user !== null)
+                  .map((ustadz) => (
+                    <SelectItem key={ustadz.id} value={ustadz.id}>
+                      {ustadz.user!.name} {ustadz.nik ? `- ${ustadz.nik}` : ''}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
