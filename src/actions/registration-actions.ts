@@ -131,6 +131,9 @@ export async function approveRegistration(
         password: defaultPassword,
         role: primaryRole,
         roles: JSON.stringify(userRoles),
+        isApproved: true,
+        approvedAt: new Date(),
+        approvedBy: adminId,
       }
     })
 

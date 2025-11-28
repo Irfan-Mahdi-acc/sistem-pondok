@@ -135,7 +135,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 name: user.name || user.email!.split('@')[0],
                 username: username,
                 password: '', // No password for OAuth users
-                role: 'SANTRI', // Default role
+                role: 'PENDING', // Pending approval
+                isApproved: false, // Requires admin approval
                 avatarUrl: user.image,
                 emailVerified: new Date(), // Auto-verify email from Google
               }
