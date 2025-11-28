@@ -4,10 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Download } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import jsPDF from 'jspdf'
 
 export function SantriSummary({ santri }: { santri: any }) {
   const handleDownloadPDF = async () => {
+    const { default: jsPDF } = await import('jspdf')
     const doc = new jsPDF()
     
     // Add professional header

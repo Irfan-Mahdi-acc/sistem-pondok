@@ -14,7 +14,6 @@ import { Badge } from "@/components/ui/badge"
 import { Eye, FileDown, TrendingUp, Award, FileSpreadsheet } from "lucide-react"
 import Link from "next/link"
 import type { RaporData } from "@/actions/rapor-actions"
-import { exportRaporToExcel } from "@/lib/excel-export"
 
 interface RaporTableProps {
   data: RaporData[]
@@ -51,7 +50,7 @@ export function RaporTable({ data, lembagaId }: RaporTableProps) {
     return <Badge variant="destructive">D</Badge>
   }
 
-  const handleExportIndividual = (rapor: RaporData) => {
+  const handleExportIndividual = async (rapor: RaporData) => {
     const filename = `Rapor_${rapor.santri.nis}_${rapor.santri.nama.replace(/\s+/g, '_')}.xlsx`
     const exportData = {
       ...rapor,
@@ -60,7 +59,13 @@ export function RaporTable({ data, lembagaId }: RaporTableProps) {
         kelas: rapor.santri.kelas?.name || null
       }
     }
-    exportRaporToExcel(exportData, filename)
+    try {
+      const { exportRaporToExcel } = await import("@/lib/excel-export")
+      exportRaporToExcel(exportData, filename)
+    } catch (error) {
+      console.error("Gagal mengekspor rapor:", error)
+      alert("Gagal export rapor. Silakan coba lagi.")
+    }
   }
 
   return (
@@ -161,7 +166,7 @@ export function RaporTable({ data, lembagaId }: RaporTableProps) {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => handleExportIndividual(rapor)}
+                      onClick={() => void handleExportIndividual(rapor)}
                     >
                       <FileSpreadsheet className="h-4 w-4 mr-1" />
                       Excel

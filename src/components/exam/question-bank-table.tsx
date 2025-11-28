@@ -1,6 +1,5 @@
 'use client'
 
-import { exportToWord } from "@/lib/export-to-word"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -49,6 +48,7 @@ export function QuestionBankTable({
   async function handleExportWord() {
     setIsExporting(true)
     try {
+      const { exportToWord } = await import("@/lib/export-to-word")
       await exportToWord({
         title: "Bank Soal",
         subject: mapelName,

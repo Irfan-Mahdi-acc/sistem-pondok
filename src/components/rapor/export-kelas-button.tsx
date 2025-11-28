@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button"
 import { FileSpreadsheet } from "lucide-react"
-import { exportKelasToExcel } from "@/lib/excel-export"
 import type { RaporData } from "@/actions/rapor-actions"
 
 interface ExportKelasButtonProps {
@@ -11,34 +10,41 @@ interface ExportKelasButtonProps {
 }
 
 export function ExportKelasButton({ data, kelasName }: ExportKelasButtonProps) {
-  const handleExport = () => {
-    // Get unique mapel list
-    const mapelSet = new Set<string>()
-    data.forEach(rapor => {
-      rapor.nilaiPerMapel.forEach(mapel => {
-        mapelSet.add(mapel.mapelName)
+  const handleExport = async () => {
+    try {
+      const { exportKelasToExcel } = await import("@/lib/excel-export")
+
+      // Get unique mapel list
+      const mapelSet = new Set<string>()
+      data.forEach(rapor => {
+        rapor.nilaiPerMapel.forEach(mapel => {
+          mapelSet.add(mapel.mapelName)
+        })
       })
-    })
-    const mapelList = Array.from(mapelSet).sort()
+      const mapelList = Array.from(mapelSet).sort()
 
-    // Transform data for export
-    const exportData = {
-      kelas: kelasName,
-      santriList: data.map(rapor => ({
-        nis: rapor.santri.nis,
-        nama: rapor.santri.nama,
-        nilaiPerMapel: rapor.nilaiPerMapel.map(m => ({
-          mapelName: m.mapelName,
-          rataRata: m.rataRata
+      // Transform data for export
+      const exportData = {
+        kelas: kelasName,
+        santriList: data.map(rapor => ({
+          nis: rapor.santri.nis,
+          nama: rapor.santri.nama,
+          nilaiPerMapel: rapor.nilaiPerMapel.map(m => ({
+            mapelName: m.mapelName,
+            rataRata: m.rataRata
+          })),
+          rataRataKeseluruhan: rapor.rataRataKeseluruhan,
+          ranking: rapor.ranking
         })),
-        rataRataKeseluruhan: rapor.rataRataKeseluruhan,
-        ranking: rapor.ranking
-      })),
-      mapelList
-    }
+        mapelList
+      }
 
-    const filename = `Rapor_${kelasName.replace(/\s+/g, '_')}.xlsx`
-    exportKelasToExcel(exportData, filename)
+      const filename = `Rapor_${kelasName.replace(/\s+/g, '_')}.xlsx`
+      exportKelasToExcel(exportData, filename)
+    } catch (error) {
+      console.error("Gagal mengekspor kelas:", error)
+      alert("Gagal export kelas. Silakan coba lagi.")
+    }
   }
 
   return (

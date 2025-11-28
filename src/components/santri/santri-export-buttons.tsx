@@ -2,10 +2,6 @@
 
 import { Button } from "@/components/ui/button"
 import { FileDown, FileSpreadsheet } from "lucide-react"
-import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
-import ExcelJS from 'exceljs'
-import { saveAs } from 'file-saver'
 
 type Santri = {
   nis: string
@@ -29,6 +25,10 @@ type ExportButtonsProps = {
 
 export function SantriExportButtons({ santriData, disabled }: ExportButtonsProps) {
   const exportToPDF = async () => {
+    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable')
+    ])
     const doc = new jsPDF()
     
     // Add professional header with logo and pondok name
@@ -59,6 +59,11 @@ export function SantriExportButtons({ santriData, disabled }: ExportButtonsProps
   }
 
   const exportToExcel = async () => {
+    const [{ default: ExcelJS }, { saveAs }] = await Promise.all([
+      import('exceljs'),
+      import('file-saver')
+    ])
+
     const workbook = new ExcelJS.Workbook()
     const worksheet = workbook.addWorksheet('Data Santri')
 
