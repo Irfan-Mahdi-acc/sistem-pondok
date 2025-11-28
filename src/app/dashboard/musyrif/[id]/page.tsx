@@ -25,7 +25,7 @@ export default async function MusyrifDetailPage({
   const { id } = await params
   const musyrif = await getMusyrifById(id)
 
-  if (!musyrif || musyrif.user.role !== 'MUSYRIF') {
+  if (!musyrif || !musyrif.user || musyrif.user.role !== 'MUSYRIF') {
     notFound()
   }
 

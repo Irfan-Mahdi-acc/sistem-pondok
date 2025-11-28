@@ -17,7 +17,7 @@ export default async function UstadzDetailPage({
   const { id } = await params
   const ustadz = await getUstadzById(id)
 
-  if (!ustadz) {
+  if (!ustadz || !ustadz.user) {
     notFound()
   }
 

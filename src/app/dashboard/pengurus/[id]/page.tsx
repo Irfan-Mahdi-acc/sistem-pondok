@@ -25,7 +25,7 @@ export default async function PengurusDetailPage({
   const { id } = await params
   const pengurus = await getPengurusById(id)
 
-  if (!pengurus || pengurus.user.role !== 'PENGURUS') {
+  if (!pengurus || !pengurus.user || pengurus.user.role !== 'PENGURUS') {
     notFound()
   }
 
