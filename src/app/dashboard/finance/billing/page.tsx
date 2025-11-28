@@ -3,6 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AddBillingDialog } from "@/components/finance/add-billing-dialog"
 import BillingTable from "@/components/finance/billing-table"
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 export default async function BillingPage() {
   const [billings, categories, summary] = await Promise.all([
     getBillings(),

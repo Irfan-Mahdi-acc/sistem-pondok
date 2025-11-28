@@ -13,6 +13,9 @@ import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import { id as localeId } from "date-fns/locale"
 
+// Force dynamic rendering - prevent static generation during build
+export const dynamic = 'force-dynamic'
+
 export default async function BookkeepingPage() {
   const currentYear = new Date().getFullYear()
   const [report, monthlyData] = await Promise.all([

@@ -6,6 +6,9 @@ import { AddBookkeepingDialog } from "@/components/bookkeeping/add-bookkeeping-d
 import { BookOpen, Building2, Calendar, CheckCircle } from "lucide-react"
 import { canCreateBookkeeping } from "@/lib/bookkeeping-permissions"
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 export default async function BookkeepingManagementPage() {
   const [bookkeepings, stats, lembagas, canCreate] = await Promise.all([
     getBookkeepings(),

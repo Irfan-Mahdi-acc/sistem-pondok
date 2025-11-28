@@ -3,6 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AddTransactionDialog } from "@/components/finance/add-transaction-dialog"
 import TransactionTable from "@/components/finance/transaction-table"
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 export default async function TransactionsPage() {
   const [transactions, categories] = await Promise.all([
     getTransactions(),

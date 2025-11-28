@@ -2,6 +2,9 @@ import { getPayments } from "@/actions/billing-actions"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import PaymentTable from "@/components/finance/payment-table"
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 export default async function PaymentsPage() {
   const payments = await getPayments()
 
