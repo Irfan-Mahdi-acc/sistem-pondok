@@ -30,7 +30,8 @@ export async function createQuestionCategory(formData: FormData) {
   })
 
   if (!validatedData.success) {
-    return { success: false, error: validatedData.error.errors[0].message }
+    const firstIssue = validatedData.error.issues[0]?.message ?? 'Data tidak valid'
+    return { success: false, error: firstIssue }
   }
 
   try {
@@ -82,7 +83,8 @@ export async function createQuestion(formData: FormData) {
   })
 
   if (!validatedData.success) {
-    return { success: false, error: validatedData.error.errors[0].message }
+    const firstIssue = validatedData.error.issues[0]?.message ?? 'Data tidak valid'
+    return { success: false, error: firstIssue }
   }
 
   try {
@@ -131,7 +133,8 @@ export async function updateQuestion(id: string, formData: FormData) {
   })
 
   if (!validatedData.success) {
-    return { success: false, error: validatedData.error.errors[0].message }
+    const firstIssue = validatedData.error.issues[0]?.message ?? 'Data tidak valid'
+    return { success: false, error: firstIssue }
   }
 
   try {
