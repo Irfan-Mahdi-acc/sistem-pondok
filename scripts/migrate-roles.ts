@@ -18,7 +18,7 @@ async function migrateRoles() {
       
       try {
         // Try to parse roles field
-        rolesArray = user.roles ? JSON.parse(user.roles) : []
+        rolesArray = user.roles && typeof user.roles === 'string' ? JSON.parse(user.roles) : []
       } catch {
         rolesArray = []
       }
