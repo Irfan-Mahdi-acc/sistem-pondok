@@ -90,7 +90,7 @@ export default async function KelasDetailPage({
             <div className="flex items-center justify-between">
               <div className="text-sm">
                 {kelas.waliKelas ? (
-                  <span className="font-medium">{kelas.waliKelas.user.name}</span>
+                  <span className="font-medium">{kelas.waliKelas.user?.name ?? '-'}</span>
                 ) : (
                   <span className="text-muted-foreground">Belum ditentukan</span>
                 )}
