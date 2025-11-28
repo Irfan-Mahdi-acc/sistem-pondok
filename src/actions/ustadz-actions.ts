@@ -1,7 +1,7 @@
 'use server'
 
 import { prisma } from "@/lib/prisma"
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
 import { encrypt, decrypt } from "@/lib/encryption"
@@ -20,90 +20,98 @@ const UstadzSchema = z.object({
   name: z.string().min(1), // Required if no userId
 })
 
-export async function getUstadzList() {
-  const allUstadz = await prisma.ustadzProfile.findMany({
-    include: {
-      user: true,
-      mapels: {
-        include: {
-          kelas: true
-        }
-      },
-      halqohs: {
-        include: {
-          _count: {
-            select: {
-              santris: true
-            }
+export const getUstadzList = unstable_cache(
+  async () => {
+    const allUstadz = await prisma.ustadzProfile.findMany({
+      include: {
+        user: true,
+        mapels: {
+          include: {
+            kelas: true
           }
-        }
-      },
-      _count: {
-        select: {
-          mapels: true,
-          halqohs: true,
-          tahfidzRecords: true,
-        }
-      }
-    },
-    orderBy: { id: 'desc' }
-  })
-
-  // Filter to only show users with USTADZ role (supports multi-role)
-  const ustadzList = allUstadz.filter(ustadz => {
-    if (!ustadz.user) return false
-    const rolesArray = parseRoles(ustadz.user.roles) || [ustadz.user.role]
-    return rolesArray.includes('USTADZ')
-  })
-
-  // Decrypt sensitive fields before sending to client
-  return ustadzList.map(ustadz => ({
-    ...ustadz,
-    nik: ustadz.nik ? decrypt(ustadz.nik) : null,
-    phone: ustadz.phone ? decrypt(ustadz.phone) : null,
-    address: ustadz.address ? decrypt(ustadz.address) : null,
-  }))
-}
-
-export async function getUstadzById(id: string) {
-  const ustadz = await prisma.ustadzProfile.findUnique({
-    where: { id },
-    include: {
-      user: true,
-      mapels: {
-        include: {
-          kelas: {
-            include: {
-              lembaga: true
-            }
-          }
-        }
-      },
-      halqohs: {
-        include: {
-          santris: true
-        }
-      },
-      tahfidzRecords: {
-        include: {
-          santri: true
         },
-        orderBy: { date: 'desc' },
-        take: 20
+        halqohs: {
+          include: {
+            _count: {
+              select: {
+                santris: true
+              }
+            }
+          }
+        },
+        _count: {
+          select: {
+            mapels: true,
+            halqohs: true,
+            tahfidzRecords: true,
+          }
+        }
+      },
+      orderBy: { id: 'desc' }
+    })
+
+    // Filter to only show users with USTADZ role (supports multi-role)
+    const ustadzList = allUstadz.filter(ustadz => {
+      if (!ustadz.user) return false
+      const rolesArray = parseRoles(ustadz.user.roles) || [ustadz.user.role]
+      return rolesArray.includes('USTADZ')
+    })
+
+    // Decrypt sensitive fields before sending to client
+    return ustadzList.map(ustadz => ({
+      ...ustadz,
+      nik: ustadz.nik ? decrypt(ustadz.nik) : null,
+      phone: ustadz.phone ? decrypt(ustadz.phone) : null,
+      address: ustadz.address ? decrypt(ustadz.address) : null,
+    }))
+  },
+  ['ustadz-list'],
+  { tags: ['ustadz'] }
+)
+
+export const getUstadzById = unstable_cache(
+  async (id: string) => {
+    const ustadz = await prisma.ustadzProfile.findUnique({
+      where: { id },
+      include: {
+        user: true,
+        mapels: {
+          include: {
+            kelas: {
+              include: {
+                lembaga: true
+              }
+            }
+          }
+        },
+        halqohs: {
+          include: {
+            santris: true
+          }
+        },
+        tahfidzRecords: {
+          include: {
+            santri: true
+          },
+          orderBy: { date: 'desc' },
+          take: 20
+        }
       }
+    })
+
+    if (!ustadz) return null
+
+    // Decrypt sensitive fields
+    return {
+      ...ustadz,
+      nik: ustadz.nik ? decrypt(ustadz.nik) : null,
+      phone: ustadz.phone ? decrypt(ustadz.phone) : null,
+      address: ustadz.address ? decrypt(ustadz.address) : null,
     }
-  })
-
-  if (!ustadz) return null
-
-  // Decrypt sensitive fields
-  return {
-    ...ustadz,
-    nik: ustadz.nik ? decrypt(ustadz.nik) : null,
-    phone: ustadz.phone ? decrypt(ustadz.phone) : null,
-    address: ustadz.address ? decrypt(ustadz.address) : null,
-  }
-}
+  },
+  ['ustadz-by-id'],
+  { tags: ['ustadz'] }
+)
 
 export async function createUstadz(formData: FormData) {
   try {
@@ -155,6 +163,7 @@ export async function createUstadz(formData: FormData) {
     })
 
     revalidatePath('/dashboard/ustadz')
+    revalidateTag('ustadz', { expire: 0 })
     return { success: true }
   } catch (error) {
     console.error(error)
@@ -188,6 +197,7 @@ export async function updateUstadz(id: string, formData: FormData) {
     })
 
     revalidatePath('/dashboard/ustadz')
+    revalidateTag('ustadz', { expire: 0 })
     return { success: true }
   } catch (error) {
     return { success: false, error: 'Failed to update ustadz profile' }
@@ -200,6 +210,7 @@ export async function deleteUstadz(id: string) {
       where: { id },
     })
     revalidatePath('/dashboard/ustadz')
+    revalidateTag('ustadz', { expire: 0 })
     return { success: true }
   } catch (error) {
     return { success: false, error: 'Failed to delete ustadz profile' }
@@ -272,6 +283,7 @@ export async function updateUstadzStatus(id: string, status: string) {
       data: { status }
     })
     revalidatePath('/dashboard/ustadz')
+    revalidateTag('ustadz', { expire: 0 })
     return { success: true }
   } catch (error) {
     return { success: false, error: 'Failed to update status' }
@@ -313,6 +325,7 @@ export async function linkUstadzToUser(ustadzId: string, userId: string) {
     
     revalidatePath('/dashboard/ustadz')
     revalidatePath('/dashboard/users')
+    revalidateTag('ustadz', { expire: 0 })
     return { success: true }
   } catch (error) {
     console.error('Link ustadz to user error:', error)

@@ -1,7 +1,7 @@
 'use server'
 
 import { prisma } from "@/lib/prisma"
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache"
 import { z } from "zod"
 import { encrypt, decrypt } from "@/lib/encryption"
 
@@ -61,67 +61,10 @@ const SantriSchema = z.object({
 })
 
 // Get all santri (for backwards compatibility, no pagination)
-export async function getSantriList() {
-  const santriList = await prisma.santri.findMany({
-    include: {
-      lembaga: true,
-      kelas: true,
-      asrama: true,
-      halqoh: true,
-      _count: {
-        select: {
-          nilais: true,
-          tahfidzRecords: true,
-          violations: true,
-        }
-      }
-    },
-    orderBy: { nama: 'asc' }
-  })
-
-  // Decrypt sensitive fields before sending to client
-  return santriList.map(santri => ({
-    ...santri,
-    nikNumber: santri.nikNumber ? decrypt(santri.nikNumber) : null,
-    phone: santri.phone ? decrypt(santri.phone) : null,
-    address: santri.address ? decrypt(santri.address) : null,
-    fatherNik: santri.fatherNik ? decrypt(santri.fatherNik) : null,
-    fatherPhone: santri.fatherPhone ? decrypt(santri.fatherPhone) : null,
-    motherNik: santri.motherNik ? decrypt(santri.motherNik) : null,
-    motherPhone: santri.motherPhone ? decrypt(santri.motherPhone) : null,
-    waliNik: santri.waliNik ? decrypt(santri.waliNik) : null,
-    waliPhone: santri.waliPhone ? decrypt(santri.waliPhone) : null,
-  }))
-}
-
-// NEW: Paginated santri list with search
-export async function getSantriListPaginated(
-  page: number = 1,
-  limit: number = 20,
-  search?: string,
-  lembagaId?: string,
-  kelasId?: string,
-  status?: string
-) {
-  // Build where clause
-  const where: any = {}
-  
-  if (search) {
-    where.OR = [
-      { nis: { contains: search } },
-      { nama: { contains: search } },
-      { nisn: { contains: search } }
-    ]
-  }
-  
-  if (lembagaId) where.lembagaId = lembagaId
-  if (kelasId) where.kelasId = kelasId
-  if (status) where.status = status
-
-  // Get paginated data and total count in parallel
-  const [santriList, total] = await Promise.all([
-    prisma.santri.findMany({
-      where,
+// Get all santri (cached)
+const getCachedSantriList = unstable_cache(
+  async () => {
+    const santriList = await prisma.santri.findMany({
       include: {
         lembaga: true,
         kelas: true,
@@ -135,36 +78,118 @@ export async function getSantriListPaginated(
           }
         }
       },
-      orderBy: { nama: 'asc' },
-      skip: (page - 1) * limit,
-      take: limit
-    }),
-    prisma.santri.count({ where })
-  ])
+      orderBy: { nama: 'asc' }
+    })
 
-  // Decrypt sensitive fields
-  const decryptedList = santriList.map(santri => ({
-    ...santri,
-    nikNumber: santri.nikNumber ? decrypt(santri.nikNumber) : null,
-    phone: santri.phone ? decrypt(santri.phone) : null,
-    address: santri.address ? decrypt(santri.address) : null,
-    fatherNik: santri.fatherNik ? decrypt(santri.fatherNik) : null,
-    fatherPhone: santri.fatherPhone ? decrypt(santri.fatherPhone) : null,
-    motherNik: santri.motherNik ? decrypt(santri.motherNik) : null,
-    motherPhone: santri.motherPhone ? decrypt(santri.motherPhone) : null,
-    waliNik: santri.waliNik ? decrypt(santri.waliNik) : null,
-    waliPhone: santri.waliPhone ? decrypt(santri.waliPhone) : null,
-  }))
+    // Decrypt sensitive fields before sending to client
+    return santriList.map(santri => ({
+      ...santri,
+      nikNumber: santri.nikNumber ? decrypt(santri.nikNumber) : null,
+      phone: santri.phone ? decrypt(santri.phone) : null,
+      address: santri.address ? decrypt(santri.address) : null,
+      fatherNik: santri.fatherNik ? decrypt(santri.fatherNik) : null,
+      fatherPhone: santri.fatherPhone ? decrypt(santri.fatherPhone) : null,
+      motherNik: santri.motherNik ? decrypt(santri.motherNik) : null,
+      motherPhone: santri.motherPhone ? decrypt(santri.motherPhone) : null,
+      waliNik: santri.waliNik ? decrypt(santri.waliNik) : null,
+      waliPhone: santri.waliPhone ? decrypt(santri.waliPhone) : null,
+    }))
+  },
+  ['santri-list-all'],
+  { tags: ['santri'] }
+)
 
-  return {
-    data: decryptedList,
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit)
+export async function getSantriList() {
+  return getCachedSantriList()
+}
+
+// NEW: Paginated santri list with search
+// Internal cached function for pagination
+const getCachedSantriListPaginated = unstable_cache(
+  async (
+    page: number,
+    limit: number,
+    search?: string,
+    lembagaId?: string,
+    kelasId?: string,
+    status?: string
+  ) => {
+    // Build where clause
+    const where: any = {}
+    
+    if (search) {
+      where.OR = [
+        { nis: { contains: search } },
+        { nama: { contains: search } },
+        { nisn: { contains: search } }
+      ]
     }
-  }
+    
+    if (lembagaId) where.lembagaId = lembagaId
+    if (kelasId) where.kelasId = kelasId
+    if (status) where.status = status
+
+    // Get paginated data and total count in parallel
+    const [santriList, total] = await Promise.all([
+      prisma.santri.findMany({
+        where,
+        include: {
+          lembaga: true,
+          kelas: true,
+          asrama: true,
+          halqoh: true,
+          _count: {
+            select: {
+              nilais: true,
+              tahfidzRecords: true,
+              violations: true,
+            }
+          }
+        },
+        orderBy: { nama: 'asc' },
+        skip: (page - 1) * limit,
+        take: limit
+      }),
+      prisma.santri.count({ where })
+    ])
+
+    // Decrypt sensitive fields
+    const decryptedList = santriList.map(santri => ({
+      ...santri,
+      nikNumber: santri.nikNumber ? decrypt(santri.nikNumber) : null,
+      phone: santri.phone ? decrypt(santri.phone) : null,
+      address: santri.address ? decrypt(santri.address) : null,
+      fatherNik: santri.fatherNik ? decrypt(santri.fatherNik) : null,
+      fatherPhone: santri.fatherPhone ? decrypt(santri.fatherPhone) : null,
+      motherNik: santri.motherNik ? decrypt(santri.motherNik) : null,
+      motherPhone: santri.motherPhone ? decrypt(santri.motherPhone) : null,
+      waliNik: santri.waliNik ? decrypt(santri.waliNik) : null,
+      waliPhone: santri.waliPhone ? decrypt(santri.waliPhone) : null,
+    }))
+
+    return {
+      data: decryptedList,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    }
+  },
+  ['santri-list-paginated'],
+  { tags: ['santri'] }
+)
+
+export async function getSantriListPaginated(
+  page: number = 1,
+  limit: number = 20,
+  search?: string,
+  lembagaId?: string,
+  kelasId?: string,
+  status?: string
+) {
+  return getCachedSantriListPaginated(page, limit, search, lembagaId, kelasId, status)
 }
 
 export async function getSantriById(id: string) {
@@ -303,6 +328,8 @@ export async function createSantri(formData: FormData) {
     }
 
     revalidatePath('/dashboard/santri')
+    revalidateTag('santri', { expire: 0 })
+    revalidateTag('kelas', { expire: 0 })
     return { success: true, id: santri.id }
   } catch (error) {
     console.error('Database error:', error)
@@ -372,6 +399,8 @@ export async function updateSantri(id: string, formData: FormData) {
     })
 
     revalidatePath('/dashboard/santri')
+    revalidateTag('santri', { expire: 0 })
+    revalidateTag('kelas', { expire: 0 })
     return { success: true }
   } catch (error) {
     return { success: false, error: 'Failed to update santri' }
@@ -413,6 +442,8 @@ export async function deleteSantri(id: string) {
     ])
     
     revalidatePath('/dashboard/santri')
+    revalidateTag('santri', { expire: 0 })
+    revalidateTag('kelas', { expire: 0 })
     return { success: true }
   } catch (error) {
     console.error('Delete santri error:', error)
@@ -495,6 +526,8 @@ export async function bulkImportSantri(santriData: any[]) {
     }
 
     revalidatePath('/dashboard/santri')
+    revalidateTag('santri', { expire: 0 })
+    revalidateTag('kelas', { expire: 0 })
     
     if (errors.length > 0) {
       console.log('Import errors:', errors)
@@ -512,23 +545,32 @@ export async function bulkImportSantri(santriData: any[]) {
 }
 
 // Get santri by kelas ID
+// Get santri by kelas ID (cached)
+const getCachedSantriByKelas = unstable_cache(
+  async (kelasId: string) => {
+    try {
+      return await prisma.santri.findMany({
+        where: {
+          kelasId,
+          status: "ACTIVE"
+        },
+        select: {
+          id: true,
+          nis: true,
+          nama: true,
+        },
+        orderBy: { nama: 'asc' }
+      })
+    } catch (error) {
+      console.error("Error fetching santri by kelas:", error)
+      return []
+    }
+  },
+  ['santri-by-kelas'],
+  { tags: ['santri'] }
+)
+
 export async function getSantriByKelas(kelasId: string) {
-  try {
-    return await prisma.santri.findMany({
-      where: {
-        kelasId,
-        status: "ACTIVE"
-      },
-      select: {
-        id: true,
-        nis: true,
-        nama: true,
-      },
-      orderBy: { nama: 'asc' }
-    })
-  } catch (error) {
-    console.error("Error fetching santri by kelas:", error)
-    return []
-  }
+  return getCachedSantriByKelas(kelasId)
 }
 

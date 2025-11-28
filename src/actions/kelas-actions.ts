@@ -1,7 +1,7 @@
 'use server'
 
 import { prisma } from "@/lib/prisma"
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache"
 import { z } from "zod"
 
 const KelasSchema = z.object({
@@ -10,57 +10,69 @@ const KelasSchema = z.object({
   nextKelasId: z.string().optional().or(z.literal('')),
 })
 
-export async function getKelasList() {
-  return await prisma.kelas.findMany({
-    orderBy: { name: 'asc' },
-    include: {
-      lembaga: true,
-      nextKelas: {
-        include: {
-          lembaga: true
+export const getKelasList = unstable_cache(
+  async () => {
+    return await prisma.kelas.findMany({
+      orderBy: { name: 'asc' },
+      include: {
+        lembaga: true,
+        nextKelas: {
+          include: {
+            lembaga: true
+          }
+        },
+        _count: {
+          select: { santris: true }
         }
-      },
-      _count: {
-        select: { santris: true }
       }
-    }
-  })
-}
+    })
+  },
+  ['kelas-list'],
+  { tags: ['kelas'] }
+)
 
-export async function getKelasByLembaga(lembagaId: string) {
-  return await prisma.kelas.findMany({
-    where: { lembagaId },
-    orderBy: { name: 'asc' },
-    include: {
-      _count: {
-        select: { santris: true }
-      }
-    }
-  })
-}
-
-
-export async function getKelasById(id: string) {
-  return await prisma.kelas.findUnique({
-    where: { id },
-    include: {
-      lembaga: true,
-      santris: {
-        orderBy: { nama: 'asc' }
-      },
-      ketuaKelas: true,
-      waliKelas: {
-        include: {
-          user: true
+export const getKelasByLembaga = unstable_cache(
+  async (lembagaId: string) => {
+    return await prisma.kelas.findMany({
+      where: { lembagaId },
+      orderBy: { name: 'asc' },
+      include: {
+        _count: {
+          select: { santris: true }
         }
-      },
-      nextKelas: true,
-      _count: {
-        select: { santris: true }
       }
-    }
-  })
-}
+    })
+  },
+  ['kelas-by-lembaga'],
+  { tags: ['kelas'] }
+)
+
+
+export const getKelasById = unstable_cache(
+  async (id: string) => {
+    return await prisma.kelas.findUnique({
+      where: { id },
+      include: {
+        lembaga: true,
+        santris: {
+          orderBy: { nama: 'asc' }
+        },
+        ketuaKelas: true,
+        waliKelas: {
+          include: {
+            user: true
+          }
+        },
+        nextKelas: true,
+        _count: {
+          select: { santris: true }
+        }
+      }
+    })
+  },
+  ['kelas-by-id'],
+  { tags: ['kelas'] }
+)
 
 // Get kelas with mapel for exam management
 export async function getKelasByIdWithMapel(id: string) {
@@ -133,6 +145,7 @@ export async function createKelas(formData: FormData) {
     })
 
     revalidatePath('/dashboard/lembaga')
+    revalidateTag('kelas', { expire: 0 })
     return { success: true, kelas }
   } catch (error) {
     console.error('Error creating kelas:', error)
@@ -170,6 +183,8 @@ export async function updateKelas(id: string, formData: FormData) {
     })
 
     revalidatePath('/dashboard/lembaga')
+    revalidateTag('kelas', { expire: 0 })
+    revalidateTag('santri', { expire: 0 })
     return { success: true }
   } catch (error) {
     console.error('Error updating kelas:', error)
@@ -184,6 +199,7 @@ export async function deleteKelas(id: string) {
     })
 
     revalidatePath('/dashboard/lembaga')
+    revalidateTag('kelas', { expire: 0 })
     return { success: true }
   } catch (error) {
     console.error('Error deleting kelas:', error)
@@ -201,6 +217,7 @@ export async function updateKetuaKelas(kelasId: string, santriId: string | null)
     })
 
     revalidatePath(`/dashboard/lembaga`)
+    revalidateTag('kelas', { expire: 0 })
     return { success: true }
   } catch (error) {
     console.error('Error updating ketua kelas:', error)
@@ -218,6 +235,7 @@ export async function updateWaliKelas(kelasId: string, ustadzId: string | null) 
     })
 
     revalidatePath(`/dashboard/lembaga`)
+    revalidateTag('kelas', { expire: 0 })
     return { success: true }
   } catch (error) {
     console.error('Error updating wali kelas:', error)
