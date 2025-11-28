@@ -4,6 +4,9 @@ import HalqohTable from "@/components/halqoh/halqoh-table"
 import { AddHalqohDialog } from "@/components/halqoh/add-halqoh-dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 export default async function HalqohPage() {
   const [halqohList, instructorList] = await Promise.all([
     getHalqohList(),
