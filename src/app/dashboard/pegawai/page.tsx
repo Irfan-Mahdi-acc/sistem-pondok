@@ -11,6 +11,9 @@ export const metadata: Metadata = {
 
 export default async function PegawaiPage() {
   const staffList = await getAllStaff()
+  const staffWithUser = staffList.filter(
+    (staff): staff is typeof staff & { user: NonNullable<typeof staff.user> } => !!staff.user
+  )
 
   const stats = {
     total: staffList.length,
@@ -110,7 +113,7 @@ export default async function PegawaiPage() {
       </div>
 
       {/* Staff Table */}
-      <StaffTable staffList={staffList} />
+      <StaffTable staffList={staffWithUser} />
     </div>
   )
 }

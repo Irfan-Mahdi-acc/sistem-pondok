@@ -11,6 +11,9 @@ export const metadata: Metadata = {
 
 export default async function MusyrifPage() {
   const musyrifList = await getMusyrifList()
+  const musyrifWithUser = musyrifList.filter(
+    (musyrif): musyrif is typeof musyrif & { user: NonNullable<typeof musyrif.user> } => !!musyrif.user
+  )
 
   const stats = {
     total: musyrifList.length,
@@ -57,7 +60,7 @@ export default async function MusyrifPage() {
         </Card>
       </div>
 
-      <MusyrifTable musyrifList={musyrifList} />
+      <MusyrifTable musyrifList={musyrifWithUser} />
     </div>
   )
 }

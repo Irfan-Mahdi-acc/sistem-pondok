@@ -13,6 +13,9 @@ export const metadata: Metadata = {
 
 export default async function PengurusPage() {
   const pengurusList = await getPengurusList()
+  const pengurusWithUser = pengurusList.filter(
+    (pengurus): pengurus is typeof pengurus & { user: NonNullable<typeof pengurus.user> } => !!pengurus.user
+  )
 
   const stats = {
     total: pengurusList.length,
@@ -59,7 +62,7 @@ export default async function PengurusPage() {
         </Card>
       </div>
 
-      <PengurusTable pengurusList={pengurusList} />
+      <PengurusTable pengurusList={pengurusWithUser} />
     </div>
   )
 }
