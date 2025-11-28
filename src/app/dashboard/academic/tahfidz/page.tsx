@@ -1,3 +1,13 @@
+import { getTahfidzRecords } from "@/actions/tahfidz-actions"
+import { getHalqohList } from "@/actions/halqoh-actions"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { AddTahfidzDialog } from "@/components/tahfidz/add-tahfidz-dialog"
+import TahfidzTable from "@/components/tahfidz/tahfidz-table"
+
+export default async function TahfidzPage() {
+  const [records, halqohList] = await Promise.all([
+    getTahfidzRecords(),
+    getHalqohList()
   ])
 
   const stats = {
