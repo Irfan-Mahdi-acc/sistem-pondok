@@ -1,11 +1,23 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
+import Google from "next-auth/providers/google"
 import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code"
+        }
+      }
+    }),
     Credentials({
       credentials: {
         username: { label: "Username", type: "text" },
@@ -69,6 +81,91 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
+    async signIn({ user, account, profile }) {
+      // Handle Google OAuth sign in
+      if (account?.provider === "google") {
+        try {
+          // Check if user exists by email
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email! }
+          })
+
+          if (existingUser) {
+            // User exists, link Google account if not already linked
+            const existingAccount = await prisma.account.findFirst({
+              where: {
+                provider: "google",
+                providerAccountId: account.providerAccountId
+              }
+            })
+
+            if (!existingAccount) {
+              await prisma.account.create({
+                data: {
+                  userId: existingUser.id,
+                  type: account.type,
+                  provider: account.provider,
+                  providerAccountId: account.providerAccountId,
+                  access_token: account.access_token,
+                  expires_at: account.expires_at,
+                  token_type: account.token_type,
+                  scope: account.scope,
+                  id_token: account.id_token,
+                }
+              })
+            }
+
+            // Update user info from Google
+            await prisma.user.update({
+              where: { id: existingUser.id },
+              data: {
+                name: user.name || existingUser.name,
+                avatarUrl: user.image || existingUser.avatarUrl,
+              }
+            })
+
+            return true
+          } else {
+            // Create new user from Google account
+            const username = user.email!.split('@')[0] + Math.random().toString(36).substring(7)
+            
+            const newUser = await prisma.user.create({
+              data: {
+                email: user.email!,
+                name: user.name || user.email!.split('@')[0],
+                username: username,
+                password: '', // No password for OAuth users
+                role: 'SANTRI', // Default role
+                avatarUrl: user.image,
+                emailVerified: new Date(), // Auto-verify email from Google
+              }
+            })
+
+            // Create account link
+            await prisma.account.create({
+              data: {
+                userId: newUser.id,
+                type: account.type,
+                provider: account.provider,
+                providerAccountId: account.providerAccountId,
+                access_token: account.access_token,
+                expires_at: account.expires_at,
+                token_type: account.token_type,
+                scope: account.scope,
+                id_token: account.id_token,
+              }
+            })
+
+            return true
+          }
+        } catch (error) {
+          console.error("Error in Google sign in:", error)
+          return false
+        }
+      }
+
+      return true
+    },
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role
