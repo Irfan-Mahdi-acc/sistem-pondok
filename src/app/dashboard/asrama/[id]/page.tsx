@@ -12,7 +12,7 @@ import { AsramaSantriList } from "@/components/asrama/asrama-santri-list"
 
 export default async function AsramaDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const [asrama, allSantri, allUstadz] = await Promise.all([
+  const [asrama, allSantri, allUstadzRaw] = await Promise.all([
     getAsramaById(id),
     getSantriList(),
     getUstadzList()
@@ -21,6 +21,9 @@ export default async function AsramaDetailPage({ params }: { params: Promise<{ i
   if (!asrama) {
     return <div>Asrama tidak ditemukan</div>
   }
+
+  // Filter ustadz with non-null user
+  const allUstadz = allUstadzRaw.filter(u => u.user !== null)
 
   // Filter santri yang belum punya asrama atau yang gender-nya sesuai
   const availableSantri = allSantri.filter(s => 
