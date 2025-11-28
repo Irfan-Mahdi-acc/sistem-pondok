@@ -131,7 +131,7 @@ export default async function AsramaDetailPage({ params }: { params: Promise<{ i
             />
           </CardHeader>
           <CardContent>
-            {asrama.musyrif ? (
+            {asrama.musyrif?.user ? (
               <div>
                 <p className="font-medium">{asrama.musyrif.user.name}</p>
                 <p className="text-sm text-muted-foreground">NIK: {asrama.musyrif.nik || '-'}</p>
