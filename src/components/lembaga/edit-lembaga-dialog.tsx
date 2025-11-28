@@ -34,17 +34,8 @@ export function EditLembagaDialog({
     try {
       const formData = new FormData(e.currentTarget)
       
-      // Upload new logo if file selected
-      if (logoFile) {
-        const uploadFormData = new FormData()
-        uploadFormData.append('file', logoFile)
-        const uploadResult = await uploadImage(uploadFormData)
-        
-        if (uploadResult.success && uploadResult.url) {
-          formData.set('logoUrl', uploadResult.url)
-        }
-      } else if (logoPreview) {
-        // Keep existing logo URL if no new file
+      // Use logo preview URL if available
+      if (logoPreview) {
         formData.set('logoUrl', logoPreview)
       }
 
@@ -112,9 +103,13 @@ export function EditLembagaDialog({
             <div className="col-span-3">
               <ImageUpload
                 value={logoPreview || undefined}
-                onChange={(file, preview) => {
-                  setLogoFile(file)
-                  setLogoPreview(preview)
+                onChange={(url) => {
+                  setLogoPreview(url)
+                  setLogoFile(null) // Clear file since we now have a URL
+                }}
+                onRemove={() => {
+                  setLogoFile(null)
+                  setLogoPreview(null)
                 }}
               />
             </div>

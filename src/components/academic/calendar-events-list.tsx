@@ -72,7 +72,7 @@ export function CalendarEventsList({ events, lembagaList, academicYears }: { eve
                       }
                       title="Hapus Event"
                       description={`Yakin ingin menghapus event "${event.title}"? Tindakan ini tidak dapat dibatalkan.`}
-                      onConfirm={async () => await deleteAcademicEvent(event.id)}
+                      onConfirm={async () => { await deleteAcademicEvent(event.id) }}
                       confirmText="Hapus"
                       cancelText="Batal"
                       variant="destructive"

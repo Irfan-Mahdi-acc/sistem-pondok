@@ -36,7 +36,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert"
-import { toast } from 'sonner'
+import { useToast } from "@/components/ui/toast"
 
 interface GradeWeight {
   id: string
@@ -56,6 +56,7 @@ export function GradeWeightSettings({ lembagaId, lembagaName }: GradeWeightSetti
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [hasChanges, setHasChanges] = useState(false)
+  const { showToast } = useToast()
 
   useEffect(() => {
     loadWeights()
@@ -69,7 +70,7 @@ export function GradeWeightSettings({ lembagaId, lembagaName }: GradeWeightSetti
       setHasChanges(false)
     } catch (error) {
       console.error('Error loading weights:', error)
-      toast.error('Gagal memuat bobot nilai')
+      showToast("Gagal memuat bobot nilai", "error")
     } finally {
       setIsLoading(false)
     }
@@ -93,11 +94,11 @@ export function GradeWeightSettings({ lembagaId, lembagaName }: GradeWeightSetti
     try {
       setIsSaving(true)
       await batchUpdateGradeWeights(lembagaId, weights)
-      toast.success('Bobot nilai berhasil disimpan')
+      showToast("Bobot nilai berhasil disimpan", "success")
       setHasChanges(false)
     } catch (error) {
       console.error('Error saving weights:', error)
-      toast.error('Gagal menyimpan bobot nilai')
+      showToast("Gagal menyimpan bobot nilai", "error")
     } finally {
       setIsSaving(false)
     }
@@ -110,10 +111,10 @@ export function GradeWeightSettings({ lembagaId, lembagaName }: GradeWeightSetti
       setIsSaving(true)
       await resetToDefaultWeights(lembagaId)
       await loadWeights()
-      toast.success('Bobot nilai direset ke default')
+      showToast("Bobot nilai direset ke default", "success")
     } catch (error) {
       console.error('Error resetting weights:', error)
-      toast.error('Gagal reset bobot nilai')
+      showToast("Gagal reset bobot nilai", "error")
     } finally {
       setIsSaving(false)
     }

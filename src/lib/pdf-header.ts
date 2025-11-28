@@ -14,7 +14,7 @@ const getBase64ImageFromURL = (url: string): Promise<string> => {
       const dataURL = canvas.toDataURL('image/png')
       resolve(dataURL)
     }
-    img.onerror = (error) => {
+    img.onerror = (error: Event | string) => {
       reject(error)
     }
     img.src = url
@@ -46,7 +46,7 @@ export const addPDFHeader = async (doc: jsPDF, options: { title?: string, subtit
     if (typeof window === 'undefined') return 30 // Server-side fallback
 
     try {
-      const html2canvas = (await import('html2canvas')).default
+      const html2canvas = (await import('html2canvas')).default as any
       
       // Get actual page width from the PDF document
       const pageWidth = doc.internal.pageSize.width
@@ -138,11 +138,12 @@ export const addPDFHeader = async (doc: jsPDF, options: { title?: string, subtit
       
       // Render to canvas
       const canvas = await html2canvas(container, {
+        // @ts-ignore
         scale: 2, // Higher scale for better quality
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
-        onclone: (clonedDoc) => {
+        onclone: (clonedDoc: Document) => {
           // Sanitize the cloned document to remove modern CSS variables that html2canvas can't parse
           const root = clonedDoc.documentElement
           const body = clonedDoc.body

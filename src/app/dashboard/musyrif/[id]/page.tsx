@@ -25,14 +25,14 @@ export default async function MusyrifDetailPage({
   const { id } = await params
   const musyrif = await getMusyrifById(id)
 
-  if (!musyrif || musyrif.user.role !== 'MUSYRIF') {
+  if (!musyrif || !musyrif.user || musyrif.user.role !== 'MUSYRIF') {
     notFound()
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{musyrif.user.name}</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{musyrif.user?.name}</h1>
         <p className="text-muted-foreground">Detail informasi musyrif</p>
       </div>
 
@@ -79,9 +79,9 @@ export default async function MusyrifDetailPage({
             <div className="flex justify-between">
               <span className="text-muted-foreground">User Account:</span>
               <span className="font-medium">
-                {musyrif.user.username.startsWith('temp_') ? 
+                {musyrif.user?.username.startsWith('temp_') ? 
                   <Badge variant="secondary">Belum terhubung</Badge> : 
-                  <Badge variant="default">{musyrif.user.username}</Badge>
+                  <Badge variant="default">{musyrif.user?.username}</Badge>
                 }
               </span>
             </div>

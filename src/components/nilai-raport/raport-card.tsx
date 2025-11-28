@@ -149,7 +149,7 @@ export function RaportCard({
             <p className="text-sm text-muted-foreground">Belum ada nilai</p>
           ) : (
             <div className="space-y-4">
-              {Object.entries(groupedMapel).map(([mapelName, nilaiList]) => {
+              {(Object.entries(groupedMapel) as [string, any[]][]).map(([mapelName, nilaiList]) => {
                 const avgScore = nilaiList.reduce((sum: number, n: any) => sum + (n.score || 0), 0) / nilaiList.length
                 return (
                   <div key={mapelName} className="border rounded-lg p-4 bg-muted/20">
@@ -189,7 +189,7 @@ export function RaportCard({
             <p className="text-sm text-muted-foreground">Belum ada nilai</p>
           ) : (
             <div className="space-y-4">
-              {Object.entries(groupedNonMapel).map(([groupName, items]) => (
+              {(Object.entries(groupedNonMapel) as [string, Array<{ nilai: any; category: any }>][]).map(([groupName, items]) => (
                 <div key={groupName} className="border rounded-lg p-4 bg-muted/20">
                   <h4 className="font-semibold text-sm mb-3 text-primary">{groupName}</h4>
                   <Table>

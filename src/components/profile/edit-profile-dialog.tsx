@@ -27,12 +27,12 @@ export function EditProfileDialog({ user }: { user: User }) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(formData: FormData): Promise<void> {
     setLoading(true)
     
     const data = {
       name: formData.get('name') as string,
-      avatarUrl: formData.get('avatarUrl') as string || null,
+      avatarUrl: (formData.get('avatarUrl') as string) || undefined,
     }
 
     const result = await updateProfile(data)

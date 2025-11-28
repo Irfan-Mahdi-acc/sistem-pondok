@@ -1,0 +1,93 @@
+
+> web@0.1.0 build
+> prisma generate && next build
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+
+??? Generated Prisma Client (v5.22.0) to .\node_modules\@prisma\client in 535ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Want to turn off tips and other hints? https://pris.ly/tip-4-nohints
+
+   ??? Next.js 16.0.3 (Turbopack)
+   - Environments: .env.local, .env
+
+   Creating an optimized production build ...
+ ??? Compiled successfully in 31.5s
+   Running TypeScript ...
+node.exe : Failed t
+o compile.
+At line:1 char:1
++ & "C:\Program Fil
+es\nodejs/node.exe"
+ "C:\Program Files\
+nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+    + CategoryInfo 
+             : No  
+  tSpecified: (F   
+ ailed to compi    
+le.:String) []    ,
+ RemoteExcept    io
+n
+    + FullyQualifi 
+   edErrorId : Na  
+  tiveCommandErr   
+ or
+ 
+
+./src/components/pr
+ofile/edit-profile-
+dialog.tsx:38:40
+Type error: Argumen
+t of type '{ name: 
+string; avatarUrl: 
+string | null; }' i
+s not assignable to
+ parameter of type 
+'{ name?: string | 
+undefined; avatarUr
+l?: string | undefi
+ned; }'.
+  Types of property
+ 'avatarUrl' are in
+compatible.
+    Type 'string | 
+null' is not assign
+able to type 'strin
+g | undefined'.
+      Type 'null' i
+s not assignable to
+ type 'string | und
+efined'.
+
+[0m [90m 36 |[39
+m     }
+ [90m 37 |[39m
+[31m[1m>[22m[39
+m[90m 38 |[39m   
+  [36mconst[39m r
+esult [33m=[39m 
+[36mawait[39m upda
+teProfile(data)
+ [90m    |[39m   
+                   
+                  
+[31m[1m^[22m[39m
+ [90m 39 |[39m   
+  
+ [90m 40 |[39m   
+  [36mif[39m (res
+ult[33m.[39msucce
+ss) {
+ [90m 41 |[39m   
+    setOpen([36mfa
+lse[39m)[0m
+Next.js build worke
+r exited with code:
+ 1 and signal: null

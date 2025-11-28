@@ -30,7 +30,7 @@ export async function createQuestionCategory(formData: FormData) {
   })
 
   if (!validatedData.success) {
-    return { success: false, error: validatedData.error.errors[0].message }
+    return { success: false, error: validatedData.error.issues[0].message }
   }
 
   try {
@@ -82,7 +82,7 @@ export async function createQuestion(formData: FormData) {
   })
 
   if (!validatedData.success) {
-    return { success: false, error: validatedData.error.errors[0].message }
+    return { success: false, error: validatedData.error.issues[0].message }
   }
 
   try {
@@ -131,7 +131,7 @@ export async function updateQuestion(id: string, formData: FormData) {
   })
 
   if (!validatedData.success) {
-    return { success: false, error: validatedData.error.errors[0].message }
+    return { success: false, error: validatedData.error.issues[0].message }
   }
 
   try {

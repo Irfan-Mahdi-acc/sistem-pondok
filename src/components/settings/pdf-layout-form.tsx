@@ -36,14 +36,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { upsertPDFLayout, getPDFLayoutByLembaga } from "@/actions/pdf-layout-actions"
 import { useToast } from "@/components/ui/toast"
 import { KOPCanvasPreview } from "./kop-canvas-preview"
-import { RichTextEditor } from "@/components/ui/rich-text-editor"
-import { ImageUpload } from "@/components/ui/image-upload"
+// import { RichTextEditor } from "@/components/ui/rich-text-editor"
+// import { ImageUpload } from "@/components/ui/image-upload"
 
 const formSchema = z.object({
   lembagaId: z.string().optional(),
   showLogo: z.boolean().optional(),
   logoUrl: z.string().optional(),
-  logoSize: z.coerce.number().min(10).max(100).optional(),
+  logoSize: z.coerce.number().min(10).max(100).default(30),
   content: z.string().optional(), // New rich text content
   headerText: z.string().optional(),
   schoolName: z.string().optional(),
@@ -52,7 +52,7 @@ const formSchema = z.object({
   email: z.string().optional(),
   website: z.string().optional(),
   showPondokName: z.boolean().optional(),
-  pondokNameSize: z.coerce.number().min(8).max(24).optional(),
+  pondokNameSize: z.coerce.number().min(8).max(24).default(14),
   footerText: z.string().optional(),
 })
 
@@ -74,7 +74,7 @@ export function PDFLayoutForm({ lembagas }: PDFLayoutFormProps) {
 
   
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
     defaultValues: {
       lembagaId: "",
       showLogo: true,
@@ -302,12 +302,13 @@ export function PDFLayoutForm({ lembagas }: PDFLayoutFormProps) {
                         render={({ field }) => (
                           <FormItem className="md:col-span-2">
                             <FormControl>
-                              <ImageUpload 
-                                value={field.value} 
-                                onChange={field.onChange}
-                                onRemove={() => field.onChange("")}
-                                label="Logo KOP"
-                              />
+                                {/* <ImageUpload 
+                                  value={field.value} 
+                                  onChange={(url) => field.onChange(url)}
+                                  onRemove={() => field.onChange("")}
+                                  label="Logo KOP"
+                                /> */}
+                                <Input {...field} placeholder="URL Logo" />
                             </FormControl>
                             <FormDescription>
                               Upload logo untuk KOP. Kosongkan untuk menggunakan logo lembaga default.
@@ -329,10 +330,16 @@ export function PDFLayoutForm({ lembagas }: PDFLayoutFormProps) {
                           <FormItem>
                             <FormLabel>Edit Tampilan KOP</FormLabel>
                             <FormControl>
-                              <RichTextEditor 
+                              {/* <RichTextEditor 
+                                value={field.value || ""} 
+                                onChange={(val) => field.onChange(val)}
+                                placeholder="Ketik isi KOP di sini..."
+                              /> */}
+                              <Textarea 
                                 value={field.value || ""} 
                                 onChange={field.onChange}
                                 placeholder="Ketik isi KOP di sini..."
+                                rows={5}
                               />
                             </FormControl>
                             <FormDescription>

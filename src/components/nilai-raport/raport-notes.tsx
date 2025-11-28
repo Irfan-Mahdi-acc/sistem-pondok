@@ -74,7 +74,7 @@ export function RaportNotes({
       return acc
     }, {} as Record<string, { scores: number[]; total: number; count: number }>)
 
-    const weakSubjects = Object.entries(mapelStats)
+    const weakSubjects = (Object.entries(mapelStats) as [string, { scores: number[]; total: number; count: number }][])
       .map(([name, stats]) => ({
         name,
         average: stats.count > 0 ? stats.total / stats.count : 0

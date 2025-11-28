@@ -17,8 +17,14 @@ async function migrateRoles() {
       let rolesArray: string[]
       
       try {
-        // Try to parse roles field
-        rolesArray = user.roles ? JSON.parse(user.roles) : []
+        // Try to parse roles field if it's a string
+        if (typeof user.roles === 'string') {
+          rolesArray = JSON.parse(user.roles)
+        } else if (Array.isArray(user.roles)) {
+          rolesArray = user.roles as string[]
+        } else {
+          rolesArray = []
+        }
       } catch {
         rolesArray = []
       }

@@ -25,14 +25,14 @@ export default async function PengurusDetailPage({
   const { id } = await params
   const pengurus = await getPengurusById(id)
 
-  if (!pengurus || pengurus.user.role !== 'PENGURUS') {
+  if (!pengurus || !pengurus.user || pengurus.user.role !== 'PENGURUS') {
     notFound()
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{pengurus.user.name}</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{pengurus.user?.name}</h1>
         <p className="text-muted-foreground">Detail informasi pengurus</p>
       </div>
 
@@ -79,9 +79,9 @@ export default async function PengurusDetailPage({
             <div className="flex justify-between">
               <span className="text-muted-foreground">User Account:</span>
               <span className="font-medium">
-                {pengurus.user.username.startsWith('temp_') ? 
+                {pengurus.user?.username.startsWith('temp_') ? 
                   <Badge variant="secondary">Belum terhubung</Badge> : 
-                  <Badge variant="default">{pengurus.user.username}</Badge>
+                  <Badge variant="default">{pengurus.user?.username}</Badge>
                 }
               </span>
             </div>

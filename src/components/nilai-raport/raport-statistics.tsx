@@ -49,7 +49,7 @@ export function RaportStatistics({
   }, {} as Record<string, { scores: number[]; total: number; count: number }>)
 
   // Calculate averages and find highest/lowest
-  const mapelAverages = Object.entries(mapelStats).map(([mapelName, stats]) => ({
+  const mapelAverages = (Object.entries(mapelStats) as [string, { scores: number[]; total: number; count: number }][]).map(([mapelName, stats]) => ({
     mapelName,
     average: stats.count > 0 ? stats.total / stats.count : 0,
     highest: Math.max(...stats.scores),

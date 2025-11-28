@@ -41,7 +41,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 lockedUntil: null
               }
             })
-            return user
+            return {
+              ...user,
+              roles: (user.roles || undefined) as string | object | undefined
+            }
           } else {
             // Record failed login attempt
             const maxAttempts = parseInt(process.env.MAX_LOGIN_ATTEMPTS || '5')

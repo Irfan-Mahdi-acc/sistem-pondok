@@ -24,7 +24,7 @@ export default async function UstadzDetailPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">{ustadz.user.name}</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{ustadz.user?.name}</h1>
         <p className="text-muted-foreground">Detail informasi ustadz</p>
       </div>
 
@@ -81,21 +81,21 @@ export default async function UstadzDetailPage({
             <div className="flex justify-between items-start">
               <span className="text-muted-foreground">Roles:</span>
               <div className="flex flex-wrap gap-1 justify-end">
-                {parseRoles(ustadz.user.roles).map((role: string) => (
+                {ustadz.user && parseRoles(ustadz.user.roles).map((role: string) => (
                   <Badge key={role} variant="outline" className="text-xs">
                     {role}
                   </Badge>
                 )) || (
-                  <Badge variant="outline" className="text-xs">{ustadz.user.role}</Badge>
+                  <Badge variant="outline" className="text-xs">{ustadz.user?.role}</Badge>
                 )}
               </div>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">User Account:</span>
               <span className="font-medium">
-                {ustadz.user.username.startsWith('temp_') ? 
+                {ustadz.user?.username.startsWith('temp_') ? 
                   <Badge variant="secondary">Belum terhubung</Badge> : 
-                  <Badge variant="default">{ustadz.user.username}</Badge>
+                  <Badge variant="default">{ustadz.user?.username}</Badge>
                 }
               </span>
             </div>

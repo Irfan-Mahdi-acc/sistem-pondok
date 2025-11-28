@@ -148,7 +148,7 @@ export async function getAvailablePengurusUsers() {
     const usersWithProfile = await prisma.ustadzProfile.findMany({
       select: { userId: true }
     })
-    const linkedUserIds = usersWithProfile.map(u => u.userId).filter(Boolean)
+    const linkedUserIds = usersWithProfile.map(u => u.userId).filter((id): id is string => id !== null)
     
     const users = await prisma.user.findMany({
       where: {
@@ -200,7 +200,7 @@ export async function linkPengurusToUser(pengurusId: string, userId: string) {
     }
 
     // If current user is temporary, delete it
-    if (pengurus.user.username.startsWith('temp_')) {
+    if (pengurus.user?.username.startsWith('temp_') && pengurus.userId) {
       await prisma.user.delete({
         where: { id: pengurus.userId }
       })

@@ -1,0 +1,98 @@
+﻿
+> web@0.1.0 build
+> prisma generate && next build
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+
+ظ£¤ Generated Prisma Client (v5.22.0) to .\node_modules\@prisma\client in 496ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Easily identify and fix slow SQL queries in your app. Optimize helps you enhance your visibility: https://pris.ly/--optimize
+
+   ظû▓ Next.js 16.0.3 (Turbopack)
+   - Environments: .env.local, .env
+
+   Creating an optimized production build ...
+ ظ£ô Compiled successfully in 20.1s
+   Running TypeScript ...
+node.exe : Failed t
+o compile.
+At line:1 char:1
++ & "C:\Program Fil
+es\nodejs/node.exe"
+ "C:\Program Files\
+nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~
+    + CategoryInfo 
+             : No  
+  tSpecified: (F   
+ ailed to compi    
+le.:String) []    ,
+ RemoteExcept    io
+n
+    + FullyQualifi 
+   edErrorId : Na  
+  tiveCommandErr   
+ or
+ 
+
+./src/components/ni
+lai-raport/raport-s
+tatistics.tsx:54:14
+Type error: 'stats'
+ is of type 'unknow
+n'.
+
+[0m [90m 52 |[39
+m   [36mconst[39m
+ mapelAverages [33
+m=[39m [33mObject
+[39m[33m.[39ment
+ries(mapelStats)[3
+3m.[39mmap(([mapel
+Name[33m,[39m sta
+ts]) [33m=>[39m (
+{
+ [90m 53 |[39m   
+  mapelName[33m,[
+39m
+[31m[1m>[22m[39
+m[90m 54 |[39m   
+  average[33m:[39
+m stats[33m.[39mc
+ount [33m>[39m [
+35m0[39m [33m?[3
+9m stats[33m.[39m
+total [33m/[39m s
+tats[33m.[39mcoun
+t [33m:[39m [35m
+0[39m[33m,[39m
+ [90m    |[39m   
+           [31m[1
+m^[22m[39m
+ [90m 55 |[39m   
+  highest[33m:[39
+m [33mMath[39m[3
+3m.[39mmax([33m..
+.[39mstats[33m.[
+39mscores)[33m,[3
+9m
+ [90m 56 |[39m   
+  lowest[33m:[39m
+ [33mMath[39m[33
+m.[39mmin([33m...
+[39mstats[33m.[3
+9mscores)[33m,[39
+m
+ [90m 57 |[39m   
+  count[33m:[39m 
+stats[33m.[39mcou
+nt[0m
+Next.js build worke
+r exited with code:
+ 1 and signal: null

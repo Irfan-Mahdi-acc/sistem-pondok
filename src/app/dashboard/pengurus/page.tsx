@@ -17,7 +17,7 @@ export default async function PengurusPage() {
   const stats = {
     total: pengurusList.length,
     active: pengurusList.filter(p => p.status === 'ACTIVE').length,
-    linked: pengurusList.filter(p => !p.user.username.startsWith('temp_')).length,
+    linked: pengurusList.filter(p => p.user && !p.user.username.startsWith('temp_')).length,
   }
 
   return (

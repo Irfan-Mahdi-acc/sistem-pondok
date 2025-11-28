@@ -223,13 +223,14 @@ export async function getUsersWithoutUstadzProfile() {
   })
 }
 
+
 export async function getAvailableUsers() {
   try {
     // Get users that already have ustadz profile linked
     const usersWithProfile = await prisma.ustadzProfile.findMany({
       select: { userId: true }
     })
-    const linkedUserIds = usersWithProfile.map(u => u.userId).filter(Boolean)
+    const linkedUserIds = usersWithProfile.map(u => u.userId).filter((id): id is string => id !== null)
     
     // Get all users not linked yet and not temp users
     // Show ALL available users, not just those with USTADZ role
@@ -262,6 +263,7 @@ export async function getAvailableUsers() {
     return []
   }
 }
+
 
 export async function updateUstadzStatus(id: string, status: string) {
   try {

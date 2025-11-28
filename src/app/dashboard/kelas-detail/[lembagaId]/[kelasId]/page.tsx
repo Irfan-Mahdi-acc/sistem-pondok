@@ -27,7 +27,8 @@ export default async function KelasDetailPage({
   const lembagaSantri = allSantri.filter(s => s.lembagaId === kelas.lembagaId)
 
   // Get all ustadz for wali kelas assignment
-  const allUstadz = await getUstadzList()
+  const allUstadzRaw = await getUstadzList()
+  const allUstadz = allUstadzRaw.filter((u): u is typeof u & { user: NonNullable<typeof u.user> } => u.user !== null)
 
   return (
     <div className="space-y-6">
@@ -90,7 +91,7 @@ export default async function KelasDetailPage({
             <div className="flex items-center justify-between">
               <div className="text-sm">
                 {kelas.waliKelas ? (
-                  <span className="font-medium">{kelas.waliKelas.user.name}</span>
+                  <span className="font-medium">{kelas.waliKelas.user?.name}</span>
                 ) : (
                   <span className="text-muted-foreground">Belum ditentukan</span>
                 )}
