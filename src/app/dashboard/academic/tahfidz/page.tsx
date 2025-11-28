@@ -4,6 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { AddTahfidzDialog } from "@/components/tahfidz/add-tahfidz-dialog"
 import TahfidzTable from "@/components/tahfidz/tahfidz-table"
 
+// Force dynamic rendering to prevent build-time database access
+export const dynamic = 'force-dynamic'
+
 export default async function TahfidzPage() {
   const [records, halqohList] = await Promise.all([
     getTahfidzRecords(),
