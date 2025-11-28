@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Pencil } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { ImageUpload } from '@/components/ui/image-upload'
 
 type User = {
   id: string
@@ -25,6 +26,7 @@ type User = {
 export function EditProfileDialog({ user }: { user: User }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl || '')
   const router = useRouter()
 
   async function handleSubmit(formData: FormData): Promise<void> {
@@ -32,7 +34,7 @@ export function EditProfileDialog({ user }: { user: User }) {
     
     const data = {
       name: formData.get('name') as string,
-      avatarUrl: (formData.get('avatarUrl') as string) || undefined,
+      avatarUrl: avatarUrl || undefined,
     }
 
     const result = await updateProfile(data)
@@ -84,13 +86,16 @@ export function EditProfileDialog({ user }: { user: User }) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="avatarUrl">URL Avatar</Label>
-            <Input
-              id="avatarUrl"
-              name="avatarUrl"
-              defaultValue={user.avatarUrl || ''}
-              placeholder="/uploads/avatar.jpg"
+            <Label>Avatar</Label>
+            <ImageUpload 
+              value={avatarUrl} 
+              onChange={(url) => setAvatarUrl(url)}
+              onRemove={() => setAvatarUrl('')}
+              label="Upload Avatar"
             />
+            <p className="text-xs text-muted-foreground">
+              Upload gambar untuk avatar profil Anda
+            </p>
           </div>
 
           <div className="flex justify-end gap-2">
