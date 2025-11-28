@@ -148,7 +148,9 @@ export async function getAvailableMusyrifUsers() {
     const usersWithProfile = await prisma.ustadzProfile.findMany({
       select: { userId: true }
     })
-    const linkedUserIds = usersWithProfile.map(u => u.userId).filter(Boolean)
+    const linkedUserIds: string[] = usersWithProfile
+      .map(u => u.userId)
+      .filter((id): id is string => id !== null && typeof id === 'string' && id.length > 0)
     
     const users = await prisma.user.findMany({
       where: {
@@ -200,7 +202,7 @@ export async function linkMusyrifToUser(musyrifId: string, userId: string) {
     }
 
     // If current user is temporary, delete it
-    if (musyrif.user.username.startsWith('temp_')) {
+    if (musyrif.userId && musyrif.user?.username?.startsWith('temp_')) {
       await prisma.user.delete({
         where: { id: musyrif.userId }
       })

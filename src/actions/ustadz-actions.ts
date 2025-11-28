@@ -229,7 +229,9 @@ export async function getAvailableUsers() {
     const usersWithProfile = await prisma.ustadzProfile.findMany({
       select: { userId: true }
     })
-    const linkedUserIds = usersWithProfile.map(u => u.userId).filter(Boolean)
+    const linkedUserIds: string[] = usersWithProfile
+      .map(u => u.userId)
+      .filter((id): id is string => id !== null && typeof id === 'string' && id.length > 0)
     
     // Get all users not linked yet and not temp users
     // Show ALL available users, not just those with USTADZ role
