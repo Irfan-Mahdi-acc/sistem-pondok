@@ -391,7 +391,7 @@ export async function deleteSantri(id: string) {
         where: { santriId: id }
       }),
       // Delete violations
-      prisma.violation.deleteMany({
+      prisma.violationRecord.deleteMany({
         where: { santriId: id }
       }),
       // Delete billings (this will cascade to payments)
