@@ -1,39 +1,67 @@
 import LoginForm from '@/components/auth/login-form';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Info } from 'lucide-react';
-import Link from 'next/link';
 
 export default function LoginPage() {
   return (
-    <main className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="relative mx-auto flex w-full max-w-[400px] flex-col space-y-4 p-4">
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-primary">Sistem Pondok</h1>
-          <p className="text-sm text-muted-foreground">Tadzimussunnah</p>
+    <main className="grid min-h-screen w-full grid-cols-1 lg:grid-cols-2">
+      {/* Left Banner */}
+      <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
+        <div className="absolute inset-0 bg-zinc-900" />
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-blue-600 opacity-90" />
+        <div className="relative z-20 flex items-center text-lg font-medium">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="mr-2 h-6 w-6"
+          >
+            <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
+          </svg>
+          Sistem Pondok Tadzimussunnah
         </div>
-        
-        <LoginForm />
-        
-        <div className="text-center">
-          <Link href="/register">
-            <Button variant="link" size="sm">
-              Belum punya akun? Daftar di sini
-            </Button>
-          </Link>
+        <div className="relative z-20 mt-auto">
+          <blockquote className="space-y-2">
+            <p className="text-lg">
+              &ldquo;Menuntut ilmu adalah kewajiban bagi setiap muslim.&rdquo;
+            </p>
+            <footer className="text-sm">HR. Ibnu Majah</footer>
+          </blockquote>
         </div>
-        
-        <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
-          <CardContent className="pt-4">
-            <div className="flex gap-2 text-xs text-muted-foreground">
-              <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-medium mb-1">Sistem Multi-Role</p>
-                <p>Jika akun Anda memiliki lebih dari 1 role, Anda akan diminta memilih role setelah login.</p>
+      </div>
+
+      {/* Right Content */}
+      <div className="flex flex-col h-full">
+        <div className="flex justify-end p-4">
+          <ThemeToggle />
+        </div>
+        <div className="flex flex-1 items-center justify-center p-8">
+          <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+            <div className="flex flex-col space-y-2 text-center">
+              <h1 className="text-2xl font-semibold tracking-tight">
+                Selamat Datang Kembali
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Masukkan kredensial Anda untuk mengakses sistem
+              </p>
+            </div>
+            
+            <LoginForm />
+            
+            <div className="px-8 text-center text-sm text-muted-foreground">
+              <div className="flex items-center justify-center gap-2 mt-4 p-3 bg-muted/50 rounded-lg border border-muted">
+                <Info className="h-4 w-4 text-primary" />
+                <span className="text-xs">
+                  Mendukung Multi-Role Login
+                </span>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </main>
   );

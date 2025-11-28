@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { UserCircle } from 'lucide-react'
 import { parseRoles } from '@/lib/role-utils'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export const metadata: Metadata = {
   title: 'Pilih Role | Pondok Management',
@@ -30,48 +31,53 @@ export default async function SelectRolePage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
-      <div className="w-full max-w-4xl">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold tracking-tight mb-2">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+      
+      <div className="w-full max-w-4xl space-y-8">
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight">
             Selamat Datang, {session.user.name}
           </h1>
-          <p className="text-muted-foreground mb-2">
+          <p className="text-muted-foreground">
             Pilih role untuk melanjutkan ke dashboard
           </p>
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="outline" className="mt-2">
             {roles.length} Role Tersedia
           </Badge>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {roles.map((role) => (
             <form key={role} action={`/api/auth/select-role`} method="POST">
               <input type="hidden" name="role" value={role} />
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer group border-2 hover:border-primary/50">
-                <CardHeader className="text-center pb-3">
-                  <div className="mx-auto mb-3 w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                    <UserCircle className="w-8 h-8 text-primary" />
+              <Card className="group relative overflow-hidden border transition-all hover:shadow-md hover:border-primary/50 cursor-pointer">
+                <CardHeader className="text-center pb-4">
+                  <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-muted flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                    <UserCircle className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
                   </div>
-                  <CardTitle className="text-lg">{getRoleDisplayName(role)}</CardTitle>
+                  <CardTitle className="text-lg font-medium">{getRoleDisplayName(role)}</CardTitle>
                 </CardHeader>
-                <CardContent className="text-center pt-0">
-                  <p className="text-xs text-muted-foreground mb-3">
+                <CardContent className="text-center pt-0 pb-6">
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                     {getRoleDescription(role)}
                   </p>
-                  <Button type="submit" className="w-full" size="sm">
+                  <Button type="submit" className="w-full" variant="secondary">
                     Masuk
                   </Button>
                 </CardContent>
+                <div className="absolute inset-0 border-2 border-primary opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none" />
               </Card>
             </form>
           ))}
         </div>
 
-        <div className="text-center mt-8">
+        <div className="text-center">
           <form action="/api/auth/signout" method="POST">
-            <Button variant="ghost" type="submit" size="sm">
-              Keluar
+            <Button variant="ghost" type="submit" size="sm" className="text-muted-foreground hover:text-foreground">
+              Keluar dari Akun
             </Button>
           </form>
         </div>
