@@ -1,5 +1,8 @@
 'use server'
 
+import fs from 'fs/promises'
+import path from 'path'
+
 export async function uploadImage(formData: FormData): Promise<{ success: boolean; url?: string; error?: string }> {
   try {
     const file = formData.get('file') as File
@@ -19,25 +22,32 @@ export async function uploadImage(formData: FormData): Promise<{ success: boolea
       return { success: false, error: 'File size must be less than 5MB' }
     }
 
-    // Create new FormData for API request
-    const uploadFormData = new FormData()
-    uploadFormData.append('file', file)
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
 
-    // Call the upload API route
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
-    const response = await fetch(`${baseUrl}/api/upload`, {
-      method: 'POST',
-      body: uploadFormData,
-    })
-
-    const result = await response.json()
-    
-    if (!response.ok || !result.success) {
-      console.error('Upload API error:', result.error)
-      return { success: false, error: result.error || 'Failed to upload file' }
+    // Create uploads directory if it doesn't exist
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads')
+    try {
+      await fs.access(uploadDir)
+    } catch {
+      await fs.mkdir(uploadDir, { recursive: true })
     }
 
-    return { success: true, url: result.url }
+    // Generate unique filename
+    const timestamp = Date.now()
+    const randomString = Math.random().toString(36).substring(7)
+    // Sanitize filename to remove special chars
+    const sanitizedName = file.name.replace(/[^a-zA-Z0-9.]/g, '')
+    const filename = `${timestamp}-${randomString}-${sanitizedName}`
+    const filepath = path.join(uploadDir, filename)
+
+    // Write file to disk
+    await fs.writeFile(filepath, buffer)
+
+    // Return public URL
+    const publicUrl = `/uploads/${filename}`
+    
+    return { success: true, url: publicUrl }
   } catch (error) {
     console.error('Upload error:', error)
     return { success: false, error: 'Failed to upload file' }
