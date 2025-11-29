@@ -8,7 +8,13 @@ export function AppLogo() {
   const [settings, setSettings] = useState<any>(null)
 
   useEffect(() => {
-    getAppSettings().then(setSettings)
+    getAppSettings()
+      .then(setSettings)
+      .catch(err => {
+        console.error("Failed to load app settings:", err)
+        // Set default settings on error to prevent crash
+        setSettings({ appName: 'Sistem Pondok', logoUrl: null })
+      })
   }, [])
 
   if (!settings) {
