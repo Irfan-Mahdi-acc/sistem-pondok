@@ -37,19 +37,36 @@ npm install
 # or if using pnpm: pnpm install
 ```
 
-## 5. Database Migration
+## 5. VPS-Specific Setup
+
+### Setup Environment Variables
+Copy and configure environment file for VPS:
+```bash
+# Lihat template di VPS-ENV-TEMPLATE.md
+nano .env
+# Isi dengan konfigurasi PostgreSQL lokal
+```
+
+### Create Uploads Directory
+Ensure the uploads directory exists with proper permissions:
+```bash
+mkdir -p public/uploads
+chmod 755 public/uploads
+```
+
+## 6. Database Migration
 Apply any database schema changes (if any):
 ```bash
 npx prisma migrate deploy
 ```
 
-## 6. Build Application
+## 7. Build Application
 Build the Next.js application for production:
 ```bash
 npm run build
 ```
 
-## 7. Restart Application
+## 8. Restart Application
 Restart the application to apply changes.
 If you are using **PM2**:
 ```bash
@@ -63,7 +80,7 @@ If you are using **Systemd**:
 sudo systemctl restart web
 ```
 
-## 8. Verify Deployment
+## 9. Verify Deployment
 - Visit your website.
 - Try uploading an image to verify the fix.
 - Check logs if there are issues:
