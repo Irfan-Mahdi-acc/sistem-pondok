@@ -1,9 +1,5 @@
 'use server'
 
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
-import { existsSync } from 'fs'
-
 export async function uploadImage(formData: FormData): Promise<{ success: boolean; url?: string; error?: string }> {
   try {
     const file = formData.get('file') as File
@@ -23,28 +19,25 @@ export async function uploadImage(formData: FormData): Promise<{ success: boolea
       return { success: false, error: 'File size must be less than 5MB' }
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = join(process.cwd(), 'public', 'uploads')
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true })
+    // Create new FormData for API request
+    const uploadFormData = new FormData()
+    uploadFormData.append('file', file)
+
+    // Call the upload API route
+    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+    const response = await fetch(`${baseUrl}/api/upload`, {
+      method: 'POST',
+      body: uploadFormData,
+    })
+
+    const result = await response.json()
+    
+    if (!response.ok || !result.success) {
+      console.error('Upload API error:', result.error)
+      return { success: false, error: result.error || 'Failed to upload file' }
     }
 
-    // Generate unique filename
-    const timestamp = Date.now()
-    const randomString = Math.random().toString(36).substring(7)
-    const extension = file.name.split('.').pop()
-    const filename = `${timestamp}-${randomString}.${extension}`
-
-    // Convert file to buffer and save
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    const filepath = join(uploadsDir, filename)
-    
-    await writeFile(filepath, buffer)
-
-    // Return public URL
-    const url = `/uploads/${filename}`
-    return { success: true, url }
+    return { success: true, url: result.url }
   } catch (error) {
     console.error('Upload error:', error)
     return { success: false, error: 'Failed to upload file' }

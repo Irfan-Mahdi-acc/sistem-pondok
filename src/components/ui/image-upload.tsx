@@ -31,13 +31,17 @@ export function ImageUpload({ value, onChange, onRemove, label = "Gambar (Opsion
       if (res.success && res.url) {
         onChange(res.url)
       } else {
-        alert('Gagal mengupload gambar: ' + res.error)
+        const errorMessage = res.error || 'Unknown error'
+        console.error('Upload failed:', errorMessage)
+        alert(`Gagal mengupload gambar: ${errorMessage}`)
       }
     } catch (error) {
       console.error('Upload error:', error)
-      alert('Terjadi kesalahan saat mengupload gambar')
+      alert('Terjadi kesalahan saat mengupload gambar. Silakan coba lagi.')
     } finally {
       setIsUploading(false)
+      // Reset input to allow re-uploading the same file
+      e.target.value = ''
     }
   }
 

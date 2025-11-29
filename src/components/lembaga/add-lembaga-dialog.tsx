@@ -13,8 +13,10 @@ import { Label } from "@/components/ui/label"
 import { ImageUpload } from "@/components/ui/image-upload"
 import { createLembaga } from "@/actions/lembaga-actions"
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 export function AddLembagaDialog() {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [logoUrl, setLogoUrl] = useState<string>('')
@@ -39,6 +41,7 @@ export function AddLembagaDialog() {
       if (res.success) {
         setLogoUrl('')
         setOpen(false)
+        router.refresh() // Refresh to show the new lembaga
         // Form will auto-reset when dialog closes
       } else {
         console.error('Create lembaga error:', res.error)
