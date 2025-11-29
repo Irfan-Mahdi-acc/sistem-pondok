@@ -187,17 +187,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return session
     },
     async redirect({ url, baseUrl }) {
-      // Force localhost instead of 0.0.0.0
-      const correctBaseUrl = baseUrl.replace('0.0.0.0', 'localhost')
-      const correctedUrl = url.replace('0.0.0.0', 'localhost')
+      // Use NEXTAUTH_URL from environment if available
+      const envUrl = process.env.NEXTAUTH_URL
+      const correctBaseUrl = envUrl || baseUrl
       
       // If redirecting after login
-      if (correctedUrl === correctBaseUrl || correctedUrl === `${correctBaseUrl}/login`) {
+      if (url === correctBaseUrl || url === `${correctBaseUrl}/login`) {
         return `${correctBaseUrl}/select-role`
       }
       // Allow callback URLs on the same origin
-      if (correctedUrl.startsWith(correctBaseUrl)) {
-        return correctedUrl
+      if (url.startsWith(correctBaseUrl)) {
+        return url
       }
       return correctBaseUrl
     },

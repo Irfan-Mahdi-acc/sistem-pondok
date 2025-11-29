@@ -23,9 +23,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Store selected role in session/cookie
-  // Fix URL to use localhost instead of 0.0.0.0
-  const correctedUrl = request.url.replace('0.0.0.0', 'localhost')
-  const response = NextResponse.redirect(new URL('/dashboard', correctedUrl))
+  const response = NextResponse.redirect(new URL('/dashboard', request.url))
   response.cookies.set('selected-role', selectedRole, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -36,7 +34,6 @@ export async function POST(request: NextRequest) {
 
   console.log('Redirecting to dashboard with role:', selectedRole)
   console.log('Cookie set for selected-role:', selectedRole)
-  console.log('Redirect URL:', correctedUrl)
 
   return response
 }

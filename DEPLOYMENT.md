@@ -5,121 +5,393 @@ Follow these steps to deploy your latest changes to the VPS.
 ## Prerequisites
 - SSH access to your VPS.
 - Git installed on the VPS.
-- Node.js and npm/yarn/pnpm installed on the VPS.
-- Database (PostgreSQL) running and accessible.
+- Node.js and npm installed on the VPS.
+- PostgreSQL running and accessible.
+- PM2 installed globally (`npm install -g pm2`)
 
-## 1. Push Changes to Git
+---
+
+## Quick Deployment (Recommended)
+
+### Using Automated Deployment Script
+
+```bash
+# SSH into VPS
+ssh user@your-vps-ip
+
+# Navigate to project directory
+cd /var/www/sistem-pondok
+
+# Run deployment script
+./deploy-vps.sh
+```
+
+The script will automatically:
+1. Pull latest changes from Git
+2. Install dependencies
+3. Run database migrations
+4. Build the application
+5. Copy static files
+6. Restart PM2 process
+7. Run health check
+
+---
+
+## Manual Deployment Steps
+
+### 1. Push Changes to Git
 On your local machine, commit and push your changes:
 ```bash
 git add .
-git commit -m "Fix image upload for VPS"
+git commit -m "Your commit message"
 git push origin main
 ```
 
-## 2. Connect to VPS
+### 2. Connect to VPS
 SSH into your server:
 ```bash
 ssh user@your-vps-ip
 ```
 
-## 3. Update Codebase
-Navigate to your project directory and pull the latest changes:
+### 3. Navigate to Project Directory
 ```bash
-cd /path/to/your/project
+cd /var/www/sistem-pondok
+```
+
+### 4. Pull Latest Changes
+```bash
 git pull origin main
 ```
 
-## 4. Install Dependencies
-Ensure all new dependencies are installed:
+### 5. Install Dependencies
 ```bash
 npm install
-# or if using yarn: yarn install
-# or if using pnpm: pnpm install
 ```
 
-## 5. VPS-Specific Setup
-
-### Setup Environment Variables
-Copy and configure environment file for VPS:
-```bash
-# Lihat template di VPS-ENV-TEMPLATE.md
-nano .env
-# Isi dengan konfigurasi PostgreSQL lokal
-```
-
-### Create Uploads Directory
-Ensure the uploads directory exists with proper permissions:
-```bash
-mkdir -p public/uploads
-chmod 755 public/uploads
-```
-
-## 6. Database Migration
-Apply any database schema changes (if any):
+### 6. Run Database Migrations
 ```bash
 npx prisma migrate deploy
+npx prisma generate
 ```
 
-## 7. Build Application
-Build the Next.js application for production:
+### 7. Build Application
 ```bash
 npm run build
+```
 
-# IMPORTANT: Copy public folder to standalone build
+### 8. Copy Static Files
+```bash
+# Copy public folder to standalone build
 cp -r public .next/standalone/
+
+# Ensure uploads directory exists with proper permissions
 mkdir -p .next/standalone/public/uploads
 chmod -R 755 .next/standalone/public/uploads
 ```
 
-## 8. Restart Application
-Restart the application to apply changes.
-If you are using **PM2**:
+### 9. Restart Application
+
+**Using PM2 Ecosystem Config (Recommended):**
+```bash
+npm run pm2:restart
+# or
+pm2 restart ecosystem.config.js --update-env
+```
+
+**First Time Setup:**
+```bash
+npm run pm2:start
+# or
+pm2 start ecosystem.config.js
+pm2 save
+```
+
+**Legacy Method (if not using ecosystem.config.js):**
 ```bash
 pm2 restart web
-# Replace 'web' with your actual PM2 process name if different.
-# You can check running processes with: pm2 list
 ```
 
-If you are using **Systemd**:
+---
+
+## Environment Configuration
+
+### Setup Environment Variables
+
+1. Copy the production template:
 ```bash
-sudo systemctl restart web
+cp env.production.template .env
 ```
 
-## 9. Verify Deployment
-- Visit your website.
-- Try uploading an image to verify the fix.
-- Check logs if there are issues:
-  - PM2: `pm2 logs web`
-  - Systemd: `journalctl -u web -f`
+2. Edit `.env` file:
+```bash
+nano .env
+```
 
-## Troubleshooting: Git Authentication
-If `git pull` asks for a username/password, it means your VPS is not authenticated with GitHub.
+3. Fill in required values:
+```env
+NODE_ENV=production
+DATABASE_URL="postgresql://pondok_user:YOUR_PASSWORD@localhost:5432/sistem_pondok"
+NEXTAUTH_SECRET="$(openssl rand -base64 32)"
+NEXTAUTH_URL="http://YOUR_VPS_IP:3000"
+ENCRYPTION_KEY="$(openssl rand -hex 16)"
+```
 
-### Option A: Use SSH Keys (Recommended)
-1.  **Generate a key on VPS**:
-    ```bash
-    ssh-keygen -t ed25519 -C "your_email@example.com"
-    # Press Enter for all prompts (default file, no passphrase)
-    ```
-2.  **View the public key**:
-    ```bash
-    cat ~/.ssh/id_ed25519.pub
-    ```
-3.  **Add to GitHub**:
-    - Copy the output (starts with `ssh-ed25519 ...`).
-    - Go to GitHub -> Settings -> SSH and GPG keys -> New SSH key.
-    - Paste the key and save.
-4.  **Test connection**:
-    ```bash
-    ssh -T git@github.com
-    # Type 'yes' if asked to continue connecting.
-    ```
-5.  **Switch remote to SSH** (if currently using HTTPS):
-    ```bash
-    git remote set-url origin git@github.com:username/repo-name.git
-    ```
+4. Generate secrets:
+```bash
+# Generate NEXTAUTH_SECRET
+openssl rand -base64 32
 
-### Option B: Personal Access Token (PAT)
-1.  Go to GitHub -> Settings -> Developer settings -> Personal access tokens -> Tokens (classic).
-2.  Generate new token (select `repo` scope).
-3.  When `git pull` asks for password, paste this token (it won't show on screen).
+# Generate ENCRYPTION_KEY
+openssl rand -hex 16
+```
+
+---
+
+## PM2 Management
+
+### View Application Status
+```bash
+pm2 status
+```
+
+### View Logs
+```bash
+pm2 logs web
+# or
+npm run pm2:logs
+
+# View last 100 lines
+pm2 logs web --lines 100
+```
+
+### Monitor Application
+```bash
+pm2 monit
+# or
+npm run pm2:monit
+```
+
+### Stop Application
+```bash
+pm2 stop web
+# or
+npm run pm2:stop
+```
+
+### Setup Auto-Restart on Server Reboot
+```bash
+pm2 startup
+# Follow the instructions shown
+pm2 save
+```
+
+---
+
+## Verification
+
+### 1. Check Application Status
+```bash
+pm2 status
+```
+
+Expected output: `web` process should be `online`
+
+### 2. Check Logs
+```bash
+pm2 logs web --lines 50
+```
+
+Look for:
+- ✅ "Server started on port 3000"
+- ✅ No error messages
+- ❌ Connection errors
+- ❌ Build errors
+
+### 3. Test in Browser
+- Visit: `http://YOUR_VPS_IP:3000`
+- Try logging in
+- Test file upload (add lembaga with logo)
+- Check all main features
+
+### 4. Test Database Connection
+```bash
+# Connect to PostgreSQL
+psql -U pondok_user -d sistem_pondok
+
+# Check tables exist
+\dt
+
+# Exit
+\q
+```
+
+---
+
+## Troubleshooting
+
+### Git Authentication Issues
+
+If `git pull` asks for username/password:
+
+**Option A: Use SSH Keys (Recommended)**
+1. Generate key on VPS:
+   ```bash
+   ssh-keygen -t ed25519 -C "your_email@example.com"
+   ```
+2. View public key:
+   ```bash
+   cat ~/.ssh/id_ed25519.pub
+   ```
+3. Add to GitHub:
+   - Go to GitHub → Settings → SSH and GPG keys → New SSH key
+   - Paste the key and save
+4. Test connection:
+   ```bash
+   ssh -T git@github.com
+   ```
+5. Switch remote to SSH:
+   ```bash
+   git remote set-url origin git@github.com:username/repo-name.git
+   ```
+
+**Option B: Personal Access Token**
+1. Go to GitHub → Settings → Developer settings → Personal access tokens
+2. Generate new token (select `repo` scope)
+3. When `git pull` asks for password, paste the token
+
+### Build Errors
+
+**Out of Memory:**
+```bash
+NODE_OPTIONS="--max-old-space-size=4096" npm run build
+```
+
+**Prisma Client Not Generated:**
+```bash
+npx prisma generate
+npm run build
+```
+
+### Database Connection Errors
+
+**Connection Refused:**
+```bash
+# Check PostgreSQL is running
+sudo systemctl status postgresql
+
+# Start if stopped
+sudo systemctl start postgresql
+```
+
+**Authentication Failed:**
+- Verify credentials in `.env`
+- Check PostgreSQL user exists
+- Verify `pg_hba.conf` allows local connections
+
+### PM2 Process Not Found
+
+```bash
+# List all processes
+pm2 list
+
+# If empty, start new process
+npm run pm2:start
+
+# Save configuration
+pm2 save
+```
+
+### Application Keeps Restarting
+
+```bash
+# Check logs for errors
+pm2 logs web --lines 100
+
+# Common causes:
+# - Port already in use
+# - Database connection failed
+# - Missing environment variables
+# - Syntax errors in code
+```
+
+### File Upload Errors
+
+```bash
+# Ensure uploads directory exists
+mkdir -p public/uploads
+mkdir -p .next/standalone/public/uploads
+
+# Set proper permissions
+chmod -R 755 public/uploads
+chmod -R 755 .next/standalone/public/uploads
+```
+
+---
+
+## Performance Tips
+
+1. **Enable PM2 Cluster Mode** (for multiple CPU cores):
+   Edit `ecosystem.config.js`:
+   ```javascript
+   instances: 2,  // Number of CPU cores
+   ```
+
+2. **Setup Log Rotation**:
+   ```bash
+   pm2 install pm2-logrotate
+   pm2 set pm2-logrotate:max_size 10M
+   ```
+
+3. **Monitor Memory Usage**:
+   ```bash
+   pm2 monit
+   ```
+
+4. **Database Optimization**:
+   - Regular backups
+   - Index optimization
+   - Connection pooling (handled by Prisma)
+
+---
+
+## Security Checklist
+
+- ✅ Strong database passwords
+- ✅ `NODE_ENV=production` set
+- ✅ Firewall configured (ufw)
+- ✅ Regular system updates
+- ✅ SSL/TLS certificate (recommended)
+- ✅ Regular backups
+- ✅ `.env` file not in Git
+
+---
+
+## Quick Reference
+
+```bash
+# Deployment
+./deploy-vps.sh
+
+# PM2 Commands
+pm2 start ecosystem.config.js
+pm2 restart web
+pm2 stop web
+pm2 logs web
+pm2 monit
+pm2 status
+
+# Database
+npx prisma migrate deploy
+npx prisma generate
+
+# Build
+npm run build
+```
+
+---
+
+## Additional Resources
+
+- [VPS-OPTIMIZATION-GUIDE.md](file:///d:/OneDrive/1.%20Pondok/Sistem%20Web%20Pondok%20Tadzimussunnah/VPS-OPTIMIZATION-GUIDE.md) - Comprehensive optimization guide
+- [VPS-ENV-TEMPLATE.md](file:///d:/OneDrive/1.%20Pondok/Sistem%20Web%20Pondok%20Tadzimussunnah/VPS-ENV-TEMPLATE.md) - Environment configuration details
+- [DATABASE_MIGRATION.md](file:///d:/OneDrive/1.%20Pondok/Sistem%20Web%20Pondok%20Tadzimussunnah/DATABASE_MIGRATION.md) - Database migration guide
