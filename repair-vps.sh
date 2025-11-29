@@ -1,5 +1,5 @@
 #!/bin/bash
-# repair-vps.sh - Script untuk memperbaiki deployment secara total
+# repair-vps.sh - Script untuk memperbaiki deployment secara total (Downgrade to Tailwind v3)
 
 echo "🛑 Menghentikan semua proses..."
 pm2 delete all
@@ -7,13 +7,14 @@ pkill -f node
 
 echo "🧹 Membersihkan cache dan build lama..."
 rm -rf .next
-rm -rf node_modules/.cache
+rm -rf node_modules
+rm -rf package-lock.json
 
 echo "📥 Mengambil update terbaru..."
 git reset --hard origin/main
 git pull origin main
 
-echo "📦 Menginstall dependencies..."
+echo "📦 Menginstall dependencies (Clean Install)..."
 npm install
 
 echo "🏗️ Membangun ulang aplikasi..."
