@@ -64,6 +64,11 @@ npx prisma migrate deploy
 Build the Next.js application for production:
 ```bash
 npm run build
+
+# IMPORTANT: Copy public folder to standalone build
+cp -r public .next/standalone/
+mkdir -p .next/standalone/public/uploads
+chmod -R 755 .next/standalone/public/uploads
 ```
 
 ## 8. Restart Application
