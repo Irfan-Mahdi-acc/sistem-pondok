@@ -42,13 +42,13 @@ export async function POST(request: NextRequest) {
   }
 
   // Store selected role in session/cookie
-  const response = NextResponse.redirect(new URL('/dashboard', request.url))
+  const response = NextResponse.redirect(new URL('/dashboard', `${request.headers.get('x-forwarded-proto') || 'http'}://${request.headers.get('host')}`))
   response.cookies.set('selected-role', selectedRole, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    maxAge: 60 * 60 * 24 * 7, // 7 days,
   })
 
   console.log('Redirecting to dashboard with role:', selectedRole)
