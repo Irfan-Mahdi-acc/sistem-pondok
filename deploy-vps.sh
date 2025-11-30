@@ -51,7 +51,15 @@ mkdir -p .next/standalone/.next
 cp -r .next/static .next/standalone/.next/ 2>/dev/null || true
 mkdir -p .next/standalone/public/uploads
 chmod -R 755 .next/standalone/public/uploads
-echo -e "${GREEN}✅ Static files copied${NC}"
+
+# Verify static files were copied
+if [ -d ".next/standalone/.next/static" ]; then
+    STATIC_COUNT=$(find .next/standalone/.next/static -type f | wc -l)
+    echo -e "${GREEN}✅ Static files copied ($STATIC_COUNT files)${NC}"
+else
+    echo -e "${RED}❌ Warning: Static files directory not found!${NC}"
+    echo "This may cause 404 errors for CSS/JS files"
+fi
 echo ""
 
 # Step 6: Create logs directory
