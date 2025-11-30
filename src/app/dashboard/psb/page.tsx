@@ -1,5 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { getPSBPeriods, getPSBRegistrations } from "@/actions/psb-actions"
+import { QuickLinksCard } from "@/components/psb/quick-links-card"
 
 export default async function PSBPage() {
   const periods = await getPSBPeriods()
@@ -12,7 +13,14 @@ export default async function PSBPage() {
   const pendingCount = registrations.filter(r => r.status === 'PENDING').length
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Penerimaan Santri Baru</h1>
+        <p className="text-muted-foreground">Kelola pendaftaran santri baru</p>
+      </div>
+
+      <QuickLinksCard activePeriod={activePeriod} />
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
