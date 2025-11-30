@@ -54,11 +54,11 @@ export function RegistrationForm({ periodId }: { periodId?: string }) {
         periodId,
       })
       
-      if (result.success) {
+      if (result.success && result.data) {
         toast.success("Pendaftaran berhasil!")
         router.push(`/psb/success?id=${result.data.registrationNo}`)
       } else {
-        toast.error(result.error)
+        toast.error(result.error || "Gagal melakukan pendaftaran")
       }
     } catch (error) {
       toast.error("Terjadi kesalahan saat mendaftar")
