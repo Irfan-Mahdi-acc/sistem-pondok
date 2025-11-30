@@ -47,6 +47,8 @@ echo ""
 # Step 5: Copy Static Files
 echo -e "${YELLOW}📂 Copying static files to standalone build...${NC}"
 cp -r public .next/standalone/ 2>/dev/null || true
+mkdir -p .next/standalone/.next
+cp -r .next/static .next/standalone/.next/ 2>/dev/null || true
 mkdir -p .next/standalone/public/uploads
 chmod -R 755 .next/standalone/public/uploads
 echo -e "${GREEN}✅ Static files copied${NC}"
