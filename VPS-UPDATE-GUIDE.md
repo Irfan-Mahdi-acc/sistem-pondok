@@ -51,3 +51,17 @@ Jika Anda ingin menjalankan semuanya sekaligus (setelah masuk ke folder project)
 ```bash
 git pull origin main && npm install && npx prisma generate && npm run build && pm2 restart web
 ```
+
+## Troubleshooting
+
+### Error: "Your local changes... would be overwritten by merge"
+Jika Anda melihat error ini saat `git pull`, artinya ada perubahan file di VPS yang bentrok. Solusinya adalah membuang perubahan di VPS (karena source of truth ada di GitHub):
+
+```bash
+git checkout .
+git pull origin main
+```
+Atau jika masih bandel:
+```bash
+git reset --hard origin/main
+```
