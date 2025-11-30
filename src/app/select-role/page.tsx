@@ -21,9 +21,30 @@ export default async function SelectRolePage() {
 
   // Parse roles (PostgreSQL compatible)
   // @ts-ignore - roles field exists but not in type
-  const roles = parseRoles(session.user.roles) || [session.user.role || 'SANTRI']
+  let roles = parseRoles(session.user.roles) || [session.user.role || 'SANTRI']
 
-  console.log('Select role page - User:', session.user.name, 'Roles:', roles)
+  console.log('Select role page - User:', session.user.name, 'Roles from token:', roles)
+
+  // Fallback: If roles is empty, fetch from database
+  // This handles users with old JWT tokens created before the fix
+  if (roles.length === 0 && session.user.id) {
+    try {
+      const { prisma } = await import('@/lib/prisma')
+      const dbUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { roles: true, role: true }
+      })
+      
+      if (dbUser) {
+        roles = parseRoles(dbUser.roles) || [dbUser.role || 'SANTRI']
+        console.log('Fetched roles from database:', roles)
+      }
+    } catch (error) {
+      console.error('Error fetching roles from database:', error)
+      // Fall back to single role from session
+      roles = [session.user.role || 'SANTRI']
+    }
+  }
 
   // If only 1 role, redirect directly to dashboard
   if (roles.length === 1) {

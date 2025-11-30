@@ -170,10 +170,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role
-        // PostgreSQL Json type - no need to stringify
-        token.roles = typeof user.roles === 'string' 
-          ? user.roles 
-          : JSON.stringify(user.roles || [user.role])
+        // Ensure roles is always an array before stringifying
+        let rolesArray: string[] = []
+        
+        if (user.roles) {
+          if (typeof user.roles === 'string') {
+            // Try to parse if it's a JSON string
+            try {
+              const parsed = JSON.parse(user.roles)
+              rolesArray = Array.isArray(parsed) ? parsed : [user.role]
+            } catch {
+              // If parsing fails, use the single role
+              rolesArray = [user.role]
+            }
+          } else if (Array.isArray(user.roles)) {
+            rolesArray = user.roles
+          } else {
+            rolesArray = [user.role]
+          }
+        } else {
+          rolesArray = [user.role]
+        }
+        
+        token.roles = JSON.stringify(rolesArray)
         token.id = user.id
       }
       return token

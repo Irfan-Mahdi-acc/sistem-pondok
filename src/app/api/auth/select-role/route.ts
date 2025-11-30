@@ -16,7 +16,26 @@ export async function POST(request: NextRequest) {
 
   // Verify user has this role (PostgreSQL compatible)
   // @ts-ignore
-  const roles = parseRoles(session.user.roles) || [session.user.role || 'SANTRI']
+  let roles = parseRoles(session.user.roles) || [session.user.role || 'SANTRI']
+
+  // Fallback: If roles is empty, fetch from database
+  if (roles.length === 0 && session.user.id) {
+    try {
+      const { prisma } = await import('@/lib/prisma')
+      const dbUser = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { roles: true, role: true }
+      })
+      
+      if (dbUser) {
+        roles = parseRoles(dbUser.roles) || [dbUser.role || 'SANTRI']
+        console.log('Fetched roles from database for verification:', roles)
+      }
+    } catch (error) {
+      console.error('Error fetching roles from database:', error)
+      roles = [session.user.role || 'SANTRI']
+    }
+  }
 
   if (!roles.includes(selectedRole)) {
     return NextResponse.json({ error: 'Invalid role' }, { status: 400 })

@@ -137,8 +137,8 @@ function NestedGroupItem({ item, pathname }: { item: any; pathname: string }) {
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
                   isSubActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                    ? 'bg-foreground border-2 border-foreground text-background font-semibold'
+                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground border-2 border-transparent'
                 )}
               >
                 <SubItemIcon className="h-4 w-4" />
@@ -244,8 +244,8 @@ function NavSection({
                 className={cn(
                   'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
                   isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                    ? 'bg-foreground border-2 border-foreground text-background font-semibold'
+                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground border-2 border-transparent'
                 )}
               >
                 <ItemIcon className="h-4 w-4" />
@@ -311,8 +311,8 @@ export function Sidebar() {
                 className={cn(
                   'flex items-center justify-center rounded-lg p-2 text-sm transition-colors',
                   isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                    ? 'bg-foreground border-2 border-foreground text-background font-semibold'
+                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground border-2 border-transparent'
                 )}
                 title={item.label}
               >
@@ -328,8 +328,8 @@ export function Sidebar() {
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
                 isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  ? 'bg-foreground border-2 border-foreground text-background font-semibold'
+                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground border-2 border-transparent'
               )}
             >
               <Icon className="h-4 w-4" />
