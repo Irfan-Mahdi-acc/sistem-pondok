@@ -486,34 +486,34 @@ export function exportRaportToExcel(
 }
 
 // Generate PDF for single student
-export function generateStudentPDF(
+export async function generateStudentPDF(
   student: any,
   kelasName: string,
   semester: string,
   nilaiData: any[],
   ujianHifdzData: any[],
-  categories: any[]
+  categories: any[],
+  lembagaId?: string
 ) {
   const doc = new jsPDF()
 
-  // Header
-  doc.setFontSize(16)
-  doc.setFont('helvetica', 'bold')
-  doc.text('RAPORT SANTRI', 105, 20, { align: 'center' })
-  
-  doc.setFontSize(10)
-  doc.setFont('helvetica', 'normal')
-  doc.text(`Kelas: ${kelasName}`, 20, 30)
-  doc.text(`Semester: ${semester}`, 20, 35)
+  // Add professional header with logo and pondok name
+  const { addPDFHeader } = await import('@/lib/pdf-header')
+  let yPos = await addPDFHeader(doc, {
+    title: 'RAPORT SANTRI',
+    subtitle: `Kelas: ${kelasName} | Semester: ${semester}`,
+  }, lembagaId)
 
   // Student Info
+  yPos += 5
   doc.setFontSize(12)
   doc.setFont('helvetica', 'bold')
-  doc.text(`Nama: ${student.nama}`, 20, 45)
+  doc.text(`Nama: ${student.nama}`, 20, yPos)
+  yPos += 6
   doc.setFont('helvetica', 'normal')
-  doc.text(`NIS: ${student.nis}`, 20, 50)
-
-  let yPos = 60
+  doc.setFontSize(10)
+  doc.text(`NIS: ${student.nis}`, 20, yPos)
+  yPos += 10
 
   // Nilai Mapel
   const mapelNilai = nilaiData.filter(n => n.category === 'UJIAN' || n.category === 'TUGAS')
@@ -619,9 +619,11 @@ export async function generateBatchPDF(
   nilaiData: any[],
   ujianHifdzData: any[],
   categories: any[],
+  lembagaId?: string,
   onProgress?: (current: number, total: number) => void
 ) {
   const doc = new jsPDF()
+  const { addPDFHeader } = await import('@/lib/pdf-header')
   let isFirstStudent = true
 
   for (let i = 0; i < students.length; i++) {
@@ -639,24 +641,22 @@ export async function generateBatchPDF(
     const studentNilai = nilaiData.filter(n => n.santriId === student.id)
     const studentHifdz = ujianHifdzData.filter(h => h.santriId === student.id)
 
-    // Header
-    doc.setFontSize(16)
-    doc.setFont('helvetica', 'bold')
-    doc.text('RAPORT SANTRI', 105, 20, { align: 'center' })
-    
-    doc.setFontSize(10)
-    doc.setFont('helvetica', 'normal')
-    doc.text(`Kelas: ${kelasName}`, 20, 30)
-    doc.text(`Semester: ${semester}`, 20, 35)
+    // Add professional header with logo and pondok name
+    let yPos = await addPDFHeader(doc, {
+      title: 'RAPORT SANTRI',
+      subtitle: `Kelas: ${kelasName} | Semester: ${semester}`,
+    }, lembagaId)
 
     // Student Info
+    yPos += 5
     doc.setFontSize(12)
     doc.setFont('helvetica', 'bold')
-    doc.text(`Nama: ${student.nama}`, 20, 45)
+    doc.text(`Nama: ${student.nama}`, 20, yPos)
+    yPos += 6
     doc.setFont('helvetica', 'normal')
-    doc.text(`NIS: ${student.nis}`, 20, 50)
-
-    let yPos = 60
+    doc.setFontSize(10)
+    doc.text(`NIS: ${student.nis}`, 20, yPos)
+    yPos += 10
 
     // Nilai Mapel
     const mapelNilai = studentNilai.filter(n => n.category === 'UJIAN' || n.category === 'TUGAS')

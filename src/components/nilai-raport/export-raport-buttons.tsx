@@ -20,6 +20,7 @@ interface ExportRaportButtonsProps {
   semester: string
   academicYear: string
   lembagaName: string
+  lembagaId?: string
   students: any[]
   nilaiData: any[]
   ujianHifdzData: any[]
@@ -31,6 +32,7 @@ export function ExportRaportButtons({
   semester,
   academicYear,
   lembagaName,
+  lembagaId,
   students,
   nilaiData,
   ujianHifdzData,
@@ -86,6 +88,7 @@ export function ExportRaportButtons({
         nilaiData,
         ujianHifdzData,
         categories,
+        lembagaId,
         (current, total) => {
           setPdfProgress((current / total) * 100)
         }

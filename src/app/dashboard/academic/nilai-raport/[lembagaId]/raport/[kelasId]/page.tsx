@@ -104,6 +104,7 @@ export default async function RaportKelasPage({
             semester={semester}
             academicYear={academicYear.name}
             lembagaName={lembaga.name}
+            lembagaId={lembagaId}
             students={students}
             nilaiData={nilaiData}
             ujianHifdzData={ujianHifdzData}
@@ -171,6 +172,7 @@ export default async function RaportKelasPage({
                       academicYearId={academicYearId}
                       semester={semester}
                       kelasName={kelas.name}
+                      lembagaId={lembagaId}
                       ranking={student.ranking}
                       totalStudents={students.length}
                       raportNumber={student.raportNumber}

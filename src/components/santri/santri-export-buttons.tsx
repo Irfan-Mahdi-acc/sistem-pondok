@@ -13,7 +13,7 @@ type Santri = {
   nama: string
   gender: string
   status: string
-  lembaga: { nama: string }
+  lembaga: { id?: string; nama: string }
   kelas: { nama: string } | null
   asrama: { nama: string } | null
   birthPlace: string | null
@@ -31,13 +31,16 @@ export function SantriExportButtons({ santriData, disabled }: ExportButtonsProps
   const exportToPDF = async () => {
     const doc = new jsPDF()
     
+    // Get lembagaId from first santri (all should have same lembaga in filtered view)
+    const lembagaId = santriData[0]?.lembaga?.id
+    
     // Add professional header with logo and pondok name
     const { addPDFHeader } = await import('@/lib/pdf-header')
     const startY = await addPDFHeader(doc, {
       title: 'Data Santri',
       subtitle: `Total: ${santriData.length} santri`,
       date: `Tanggal: ${new Date().toLocaleDateString('id-ID')}`
-    })
+    }, lembagaId)
 
     // Table
     autoTable(doc, {

@@ -23,6 +23,7 @@ interface RaportCardProps {
   academicYearId: string
   semester: string
   kelasName: string
+  lembagaId?: string
   ranking?: number
   totalStudents?: number
   raportNumber?: string
@@ -36,6 +37,7 @@ export function RaportCard({
   academicYearId, 
   semester, 
   kelasName,
+  lembagaId,
   ranking,
   totalStudents
 }: RaportCardProps) {
@@ -77,10 +79,10 @@ export function RaportCard({
     window.print()
   }
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     setIsGeneratingPDF(true)
     try {
-      generateStudentPDF(student, kelasName, semester, nilaiData, ujianHifdzData, categories)
+      await generateStudentPDF(student, kelasName, semester, nilaiData, ujianHifdzData, categories, lembagaId)
     } catch (error) {
       console.error('Error generating PDF:', error)
       alert('Gagal generate PDF. Silakan coba lagi.')
