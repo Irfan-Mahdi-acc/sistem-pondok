@@ -766,6 +766,30 @@ model MaintenanceLog {
   asset       Asset    @relation(fields: [assetId], references: [id])
 }
 
+model PSBPeriod {
+  id              String            @id @default(cuid())
+  name            String
+  description     String?
+  startDate       DateTime
+  endDate         DateTime
+  isActive        Boolean           @default(false)
+  quota           Int?
+  registrationFee Float             @default(0)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  registrations   PSBRegistration[]
+}
+
+model PSBTrack {
+  id            String            @id @default(cuid())
+  name          String
+  description   String?
+  isActive      Boolean           @default(true)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  registrations PSBRegistration[]
+}
+
 model PSBRegistration {
   id             String   @id @default(cuid())
   registrationNo String   @unique
@@ -778,9 +802,37 @@ model PSBRegistration {
   fatherName     String
   motherName     String
   phone          String
-  status         String
+  status         String   @default("PENDING") // PENDING, INTERVIEW, ACCEPTED, REJECTED, WAITLIST
+
+  // Relations
+  periodId       String?
+  period         PSBPeriod? @relation(fields: [periodId], references: [id])
+  trackId        String?
+  track          PSBTrack?  @relation(fields: [trackId], references: [id])
+  
+  // School Origin
+  schoolOrigin   String?
+  schoolAddress  String?
+  schoolNpsn     String?
+
+  // Additional Info
+  parentDetails  Json?    
+  documents      Json?    // Store URLs: { kk: "url", akta: "url", ijazah: "url" }
+  
+  // Payment
+  registrationFee Float?
+  paymentStatus   String   @default("UNPAID") // UNPAID, PAID, VERIFIED
+  paymentProof    String?
+  
+  // Selection
+  testScore       Float?
+  interviewNote   String?
+  
   santriId       String?  @unique
   santri         Santri?  @relation(fields: [santriId], references: [id])
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 model DocumentArchive {
