@@ -34,8 +34,8 @@ const formSchema = z.object({
   startDate: z.string().min(1, "Tanggal mulai wajib diisi"),
   endDate: z.string().min(1, "Tanggal selesai wajib diisi"),
   isActive: z.boolean(),
-  quota: z.coerce.number().optional(),
-  registrationFee: z.coerce.number().min(0).default(0),
+  quota: z.preprocess((val) => (val === "" ? undefined : Number(val)), z.number().optional()),
+  registrationFee: z.preprocess((val) => (val === "" ? 0 : Number(val)), z.number().min(0).default(0)),
 })
 
 interface PeriodDialogProps {
