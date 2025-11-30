@@ -166,6 +166,8 @@ model Lembaga {
   santris           Santri[]
   documents         DocumentArchive[]
   bookkeepings      Bookkeeping[]
+  psbPeriods        PSBPeriod[]
+  psbRegistrations  PSBRegistration[]  @relation("AssignedLembaga")
 }
 
 model LembagaGradeCategory {
@@ -256,9 +258,10 @@ model Kelas {
   prevKelas      Kelas[]           @relation("ClassPromotion")
   waliKelas      UstadzProfile?    @relation("HomeroomTeacher", fields: [waliKelasId], references: [id])
   kelasHistory   KelasHistory[]
-  mapels         Mapel[]
-  piketSchedules PiketSchedule[]
-  santris        Santri[]
+  mapels           Mapel[]
+  piketSchedules   PiketSchedule[]
+  santris          Santri[]
+  psbRegistrations PSBRegistration[]  @relation("AssignedKelas")
 }
 
 model JamPelajaran {
@@ -767,17 +770,29 @@ model MaintenanceLog {
 }
 
 model PSBPeriod {
-  id              String            @id @default(cuid())
-  name            String
-  description     String?
-  startDate       DateTime
-  endDate         DateTime
-  isActive        Boolean           @default(false)
-  quota           Int?
-  registrationFee Float             @default(0)
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  registrations   PSBRegistration[]
+  id                       String            @id @default(cuid())
+  name                     String
+  description              String?
+  startDate                DateTime
+  endDate                  DateTime
+  isActive                 Boolean           @default(false)
+  quota                    Int?
+  
+  // Lembaga relation
+  lembagaId                String
+  lembaga                  Lembaga           @relation(fields: [lembagaId], references: [id])
+  
+  // Fee breakdown (JSON)
+  registrationFeeDetails   Json?             // { "Formulir": 50000, "Administrasi": 100000 }
+  reregistrationFeeDetails Json?             // { "Pembangunan": 500000, "Seragam": 300000 }
+  
+  // Calculated totals
+  registrationFee          Float             @default(0)
+  reregistrationFee        Float             @default(0)
+  
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
+  registrations            PSBRegistration[]
 }
 
 model PSBTrack {
@@ -791,48 +806,67 @@ model PSBTrack {
 }
 
 model PSBRegistration {
-  id             String   @id @default(cuid())
-  registrationNo String   @unique
-  name           String
-  nisn           String?
-  gender         String
-  birthPlace     String
-  birthDate      DateTime
-  address        String
-  fatherName     String
-  motherName     String
-  phone          String
-  status         String   @default("PENDING") // PENDING, INTERVIEW, ACCEPTED, REJECTED, WAITLIST
+  id                       String     @id @default(cuid())
+  registrationNo           String     @unique
+  name                     String
+  nisn                     String?
+  gender                   String
+  birthPlace               String
+  birthDate                DateTime
+  address                  String
+  fatherName               String
+  motherName               String
+  phone                    String
+  status                   String     @default("PENDING") // PENDING, PAYMENT_VERIFIED, INTERVIEW, ACCEPTED, ASSIGNED, REREGISTRATION_PENDING, CONFIRMED, REJECTED, DECLINED
 
   // Relations
-  periodId       String?
-  period         PSBPeriod? @relation(fields: [periodId], references: [id])
-  trackId        String?
-  track          PSBTrack?  @relation(fields: [trackId], references: [id])
+  periodId                 String?
+  period                   PSBPeriod? @relation(fields: [periodId], references: [id])
+  trackId                  String?
+  track                    PSBTrack?  @relation(fields: [trackId], references: [id])
   
   // School Origin
-  schoolOrigin   String?
-  schoolAddress  String?
-  schoolNpsn     String?
+  schoolOrigin             String?
+  schoolAddress            String?
+  schoolNpsn               String?
 
   // Additional Info
-  parentDetails  Json?    
-  documents      Json?    // Store URLs: { kk: "url", akta: "url", ijazah: "url" }
+  parentDetails            Json?    
+  documents                Json?    // Store URLs: { kk: "url", akta: "url", ijazah: "url" }
+  
+  // Fee details (copied from period at registration time)
+  registrationFeeDetails   Json?
+  reregistrationFeeDetails Json?
   
   // Payment
-  registrationFee Float?
-  paymentStatus   String   @default("UNPAID") // UNPAID, PAID, VERIFIED
-  paymentProof    String?
+  registrationFee          Float?
+  paymentStatus            String     @default("UNPAID") // UNPAID, PAID, VERIFIED
+  paymentProof             String?
+  paymentVerifiedAt        DateTime?
+  paymentVerifiedBy        String?
+  
+  // Re-registration payment
+  reregistrationProof      String?
+  reregistrationStatus     String     @default("UNPAID") // UNPAID, PAID, VERIFIED
+  reregistrationVerifiedAt DateTime?
+  
+  // Assignment to Lembaga & Kelas
+  assignedLembagaId        String?
+  assignedLembaga          Lembaga?   @relation("AssignedLembaga", fields: [assignedLembagaId], references: [id])
+  assignedKelasId          String?
+  assignedKelas            Kelas?     @relation("AssignedKelas", fields: [assignedKelasId], references: [id])
+  assignedAt               DateTime?
+  assignedBy               String?
   
   // Selection
-  testScore       Float?
-  interviewNote   String?
+  testScore                Float?
+  interviewNote            String?
   
-  santriId       String?  @unique
-  santri         Santri?  @relation(fields: [santriId], references: [id])
+  santriId                 String?    @unique
+  santri                   Santri?    @relation(fields: [santriId], references: [id])
   
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt                DateTime   @default(now())
+  updatedAt                DateTime   @updatedAt
 }
 
 model DocumentArchive {
