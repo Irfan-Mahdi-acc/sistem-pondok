@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Eye, EyeOff } from 'lucide-react'
+import RegisterForm from './register-form'
 
 
 export default function LoginForm() {
@@ -110,6 +111,8 @@ export default function LoginForm() {
         </svg>
         Masuk dengan Google
       </Button>
+
+      <RegisterForm />
     </div>
   )
 }

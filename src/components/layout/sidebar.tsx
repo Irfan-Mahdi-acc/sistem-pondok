@@ -73,9 +73,7 @@ const financeItems = [
 
 const settingsItems = [
   { href: '/dashboard/settings', label: 'Pengaturan Aplikasi', icon: Settings },
-  { href: '/dashboard/users', label: 'Pengguna', icon: Users },
-  { href: '/dashboard/users/registrations', label: 'Pendaftaran Akun (Web)', icon: UserPlus },
-  { href: '/dashboard/user-registrations', label: 'Pendaftaran Akun (Google)', icon: UserPlus },
+  { href: '/dashboard/settings/users', label: 'Pengguna', icon: Users },
   { href: '/dashboard/roles', label: 'Role & Izin', icon: Shield },
 ]
 
