@@ -33,7 +33,7 @@ const formSchema = z.object({
   description: z.string().optional(),
   startDate: z.string().min(1, "Tanggal mulai wajib diisi"),
   endDate: z.string().min(1, "Tanggal selesai wajib diisi"),
-  isActive: z.boolean().default(false),
+  isActive: z.boolean(),
   quota: z.coerce.number().optional(),
   registrationFee: z.coerce.number().min(0).default(0),
 })
@@ -56,7 +56,7 @@ export function PeriodDialog({ period, trigger, open, onOpenChange }: PeriodDial
       description: period?.description || "",
       startDate: period?.startDate ? new Date(period.startDate).toISOString().split('T')[0] : "",
       endDate: period?.endDate ? new Date(period.endDate).toISOString().split('T')[0] : "",
-      isActive: period?.isActive || false,
+      isActive: period?.isActive ?? false,
       quota: period?.quota || undefined,
       registrationFee: period?.registrationFee || 0,
     },
