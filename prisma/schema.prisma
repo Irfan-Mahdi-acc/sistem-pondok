@@ -832,19 +832,20 @@ model AgendaKantor {
 
 // Bookkeeping System - Multi-level (Umum/Lembaga/Custom)
 model Bookkeeping {
-  id           String                  @id @default(cuid())
-  name         String                  // e.g., "Pembukuan Umum", "Pembukuan Lembaga A", "Kas Masjid"
-  type         String                  // "UMUM", "LEMBAGA", "CUSTOM"
-  lembagaId    String?                 // For LEMBAGA type
-  description  String?
-  status       String                  @default("ACTIVE") // "ACTIVE", "ARCHIVED"
-  createdBy    String
-  createdAt    DateTime                @default(now())
-  updatedAt    DateTime                @updatedAt
+  id            String                  @id @default(cuid())
+  name          String                  // e.g., "Pembukuan Umum", "Pembukuan Lembaga A", "Kas Masjid"
+  type          String                  // "UMUM", "LEMBAGA", "CUSTOM"
+  lembagaId     String?                 // For LEMBAGA type
+  description   String?
+  status        String                  @default("ACTIVE") // "ACTIVE", "ARCHIVED"
+  createdBy     String
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
   
-  lembaga      Lembaga?                @relation(fields: [lembagaId], references: [id])
-  assignments  BookkeepingAssignment[]
-  transactions Transaction[]
+  lembaga       Lembaga?                @relation(fields: [lembagaId], references: [id])
+  assignments   BookkeepingAssignment[]
+  transactions  Transaction[]
+  closedPeriods BookkeepingPeriod[]
   
   @@index([type])
   @@index([lembagaId])
@@ -866,6 +867,24 @@ model BookkeepingAssignment {
   @@unique([bookkeepingId, userId])
   @@index([userId])
   @@index([bookkeepingId])
+}
+
+// Closed periods for bookkeeping
+model BookkeepingPeriod {
+  id            String      @id @default(cuid())
+  bookkeepingId String
+  periodStart   DateTime
+  periodEnd     DateTime
+  closedAt      DateTime    @default(now())
+  closedBy      String
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  bookkeeping   Bookkeeping @relation(fields: [bookkeepingId], references: [id], onDelete: Cascade)
+  
+  @@index([bookkeepingId])
+  @@index([periodStart, periodEnd])
 }
 
 // User Registration with Admin Approval

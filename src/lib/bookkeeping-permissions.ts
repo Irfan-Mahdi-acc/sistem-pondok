@@ -7,6 +7,7 @@ export type BookkeepingAccess = {
   canDelete: boolean
   canAssign: boolean
   role?: 'MANAGER' | 'EDITOR' | 'VIEWER' | null
+  userId?: string
 }
 
 /**
@@ -35,6 +36,7 @@ export async function getBookkeepingAccess(bookkeepingId: string): Promise<Bookk
       canDelete: true,
       canAssign: true,
       role: 'MANAGER',
+      userId,
     }
   }
 
@@ -46,6 +48,7 @@ export async function getBookkeepingAccess(bookkeepingId: string): Promise<Bookk
       canDelete: false,
       canAssign: true,
       role: 'MANAGER',
+      userId,
     }
   }
 
@@ -63,6 +66,7 @@ export async function getBookkeepingAccess(bookkeepingId: string): Promise<Bookk
       canEdit: false,
       canDelete: false,
       canAssign: false,
+      userId,
     }
   }
 
@@ -75,6 +79,7 @@ export async function getBookkeepingAccess(bookkeepingId: string): Promise<Bookk
         canDelete: false,
         canAssign: true,
         role: 'MANAGER',
+        userId,
       }
     case 'EDITOR':
       return {
@@ -83,6 +88,7 @@ export async function getBookkeepingAccess(bookkeepingId: string): Promise<Bookk
         canDelete: false,
         canAssign: false,
         role: 'EDITOR',
+        userId,
       }
     case 'VIEWER':
       return {
@@ -91,6 +97,7 @@ export async function getBookkeepingAccess(bookkeepingId: string): Promise<Bookk
         canDelete: false,
         canAssign: false,
         role: 'VIEWER',
+        userId,
       }
     default:
       return {
@@ -98,6 +105,7 @@ export async function getBookkeepingAccess(bookkeepingId: string): Promise<Bookk
         canEdit: false,
         canDelete: false,
         canAssign: false,
+        userId,
       }
   }
 }

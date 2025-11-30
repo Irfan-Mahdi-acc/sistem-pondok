@@ -1,8 +1,10 @@
 import { getBookkeepingById } from "@/actions/bookkeeping-management-actions"
 import { 
   getBookkeepingTransactions, 
-  getBookkeepingSummary 
+  getBookkeepingSummary,
+  getBookkeepingByCategory
 } from "@/actions/bookkeeping-transaction-actions"
+import { getClosedPeriods } from "@/actions/bookkeeping-period-actions"
 import { getTransactionCategories } from "@/actions/transaction-actions"
 import { getBookkeepingAccess } from "@/lib/bookkeeping-permissions"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,6 +12,10 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BookkeepingTransactionTable } from "@/components/bookkeeping/bookkeeping-transaction-table"
 import { AddTransactionDialog } from "@/components/bookkeeping/add-transaction-dialog"
+import { DateRangeFilter } from "@/components/bookkeeping/date-range-filter"
+import { ExportExcelButton } from "@/components/bookkeeping/export-excel-button"
+import { ClosePeriodDialog } from "@/components/bookkeeping/close-period-dialog"
+import { BookkeepingPieChart } from "@/components/bookkeeping/bookkeeping-pie-chart"
 import { ArrowLeft, TrendingUp, TrendingDown, Wallet, Users } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -19,7 +25,7 @@ export default async function BookkeepingDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ month?: string; year?: string }>
+  searchParams: Promise<{ startDate?: string; endDate?: string }>
 }) {
   const { id } = await params
   const search = await searchParams
@@ -50,13 +56,23 @@ export default async function BookkeepingDetailPage({
     )
   }
 
-  const month = search.month ? parseInt(search.month) : undefined
-  const year = search.year ? parseInt(search.year) : new Date().getFullYear()
+  const startDate = search.startDate ? new Date(search.startDate) : undefined
+  const endDate = search.endDate ? new Date(search.endDate) : undefined
 
-  const [transactions, summary, categories] = await Promise.all([
-    getBookkeepingTransactions(id, month, year),
-    getBookkeepingSummary(id, month, year),
-    getTransactionCategories()
+  const [
+    transactions, 
+    summary, 
+    categories, 
+    incomeByCategory, 
+    expenseByCategory,
+    closedPeriods
+  ] = await Promise.all([
+    getBookkeepingTransactions(id, startDate, endDate),
+    getBookkeepingSummary(id, startDate, endDate),
+    getTransactionCategories(),
+    getBookkeepingByCategory(id, 'INCOME', startDate, endDate),
+    getBookkeepingByCategory(id, 'EXPENSE', startDate, endDate),
+    getClosedPeriods(id)
   ])
 
   const getTypeBadge = (type: string) => {
@@ -79,7 +95,7 @@ export default async function BookkeepingDetailPage({
             Kembali
           </Button>
         </Link>
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <h1 className="text-2xl font-bold">{bookkeeping.name}</h1>
@@ -99,13 +115,27 @@ export default async function BookkeepingDetailPage({
               </p>
             )}
           </div>
-          {access.canEdit && (
-            <AddTransactionDialog 
+          <div className="flex flex-wrap items-center gap-2">
+            {access.role === 'MANAGER' && (
+              <ClosePeriodDialog bookkeepingId={id} />
+            )}
+            <ExportExcelButton 
               bookkeepingId={id} 
-              categories={categories}
+              bookkeepingName={bookkeeping.name} 
             />
-          )}
+            {access.canEdit && (
+              <AddTransactionDialog 
+                bookkeepingId={id} 
+                categories={categories}
+              />
+            )}
+          </div>
         </div>
+      </div>
+
+      {/* Filters */}
+      <div className="flex items-center justify-between">
+        <DateRangeFilter />
       </div>
 
       {/* Summary Cards */}
@@ -173,6 +203,14 @@ export default async function BookkeepingDetailPage({
         </Card>
       </div>
 
+      {/* Charts */}
+      {(incomeByCategory.length > 0 || expenseByCategory.length > 0) && (
+        <BookkeepingPieChart 
+          incomeData={incomeByCategory} 
+          expenseData={expenseByCategory} 
+        />
+      )}
+
       {/* Assigned Users */}
       {bookkeeping.assignments.length > 0 && (
         <Card>
@@ -211,6 +249,7 @@ export default async function BookkeepingDetailPage({
             bookkeepingId={id}
             canEdit={access.canEdit}
             categories={categories}
+            closedPeriods={closedPeriods}
           />
         </CardContent>
       </Card>

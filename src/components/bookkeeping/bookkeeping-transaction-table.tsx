@@ -16,11 +16,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { MoreHorizontal, Edit, Trash2, TrendingUp, TrendingDown } from 'lucide-react'
-import { format } from 'date-fns'
+import { MoreHorizontal, Edit, Trash2, Lock } from 'lucide-react'
+import { format, isWithinInterval } from 'date-fns'
 import { id as localeId } from 'date-fns/locale'
 import { deleteBookkeepingTransaction } from '@/actions/bookkeeping-transaction-actions'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 
 type Transaction = {
   id: string
@@ -43,16 +44,23 @@ type Category = {
   type: string
 }
 
+type ClosedPeriod = {
+  periodStart: Date
+  periodEnd: Date
+}
+
 export function BookkeepingTransactionTable({
   transactions,
   bookkeepingId,
   canEdit,
   categories,
+  closedPeriods = [],
 }: {
   transactions: Transaction[]
   bookkeepingId: string
   canEdit: boolean
   categories: Category[]
+  closedPeriods?: ClosedPeriod[]
 }) {
   const router = useRouter()
 
@@ -61,10 +69,20 @@ export function BookkeepingTransactionTable({
 
     const result = await deleteBookkeepingTransaction(id, bookkeepingId)
     if (result.success) {
+      toast.success('Transaksi berhasil dihapus')
       router.refresh()
     } else {
-      alert(result.error)
+      toast.error(result.error || 'Gagal menghapus transaksi')
     }
+  }
+
+  const isTransactionClosed = (date: Date) => {
+    return closedPeriods.some(period => 
+      isWithinInterval(new Date(date), {
+        start: new Date(period.periodStart),
+        end: new Date(period.periodEnd)
+      })
+    )
   }
 
   // Calculate totals
@@ -127,62 +145,75 @@ export function BookkeepingTransactionTable({
                 </TableCell>
               </TableRow>
             ) : (
-              transactions.map((transaction) => (
-                <TableRow key={transaction.id}>
-                  <TableCell className="whitespace-nowrap">
-                    {format(new Date(transaction.date), 'dd MMM yyyy', { locale: localeId })}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="text-xs">
-                      {transaction.category.name}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="max-w-xs truncate">
-                    {transaction.description}
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {transaction.reference || '-'}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {transaction.type === 'INCOME' ? (
-                      <span className="font-medium text-green-600">
-                        Rp {transaction.amount.toLocaleString('id-ID')}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {transaction.type === 'EXPENSE' ? (
-                      <span className="font-medium text-red-600">
-                        Rp {transaction.amount.toLocaleString('id-ID')}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
-                    {transaction.recordedBy || '-'}
-                  </TableCell>
-                  {canEdit && (
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleDelete(transaction.id)}>
-                            <Trash2 className="mr-2 h-4 w-4 text-red-600" />
-                            Hapus
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+              transactions.map((transaction) => {
+                const isClosed = isTransactionClosed(transaction.date)
+                
+                return (
+                  <TableRow key={transaction.id} className={isClosed ? "bg-muted/30" : ""}>
+                    <TableCell className="whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        {format(new Date(transaction.date), 'dd MMM yyyy', { locale: localeId })}
+                        {isClosed && <Lock className="h-3 w-3 text-muted-foreground" />}
+                      </div>
                     </TableCell>
-                  )}
-                </TableRow>
-              ))
+                    <TableCell>
+                      <Badge variant="outline" className="text-xs">
+                        {transaction.category.name}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="max-w-xs truncate">
+                      {transaction.description}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {transaction.reference || '-'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {transaction.type === 'INCOME' ? (
+                        <span className="font-medium text-green-600">
+                          Rp {transaction.amount.toLocaleString('id-ID')}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {transaction.type === 'EXPENSE' ? (
+                        <span className="font-medium text-red-600">
+                          Rp {transaction.amount.toLocaleString('id-ID')}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {transaction.recordedBy || '-'}
+                    </TableCell>
+                    {canEdit && (
+                      <TableCell className="text-right">
+                        {!isClosed ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleDelete(transaction.id)}>
+                                <Trash2 className="mr-2 h-4 w-4 text-red-600" />
+                                Hapus
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : (
+                          <Button variant="ghost" size="icon" disabled>
+                            <Lock className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        )}
+                      </TableCell>
+                    )}
+                  </TableRow>
+                )
+              })
             )}
           </TableBody>
         </Table>
