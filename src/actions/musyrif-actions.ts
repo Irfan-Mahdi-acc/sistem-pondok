@@ -161,12 +161,15 @@ export async function getAvailableMusyrifUsers() {
           not: {
             startsWith: 'temp_'
           }
-        }
+        },
+        // Only show approved users
+        isApproved: true
       },
       select: {
         id: true,
         name: true,
         username: true,
+        email: true,
       },
       orderBy: { name: 'asc' }
     })
