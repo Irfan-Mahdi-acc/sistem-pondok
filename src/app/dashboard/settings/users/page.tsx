@@ -19,9 +19,20 @@ export default async function UsersPage() {
   const [pendingUsers, approvedUsers] = await Promise.all([
     prisma.user.findMany({
       where: {
-        OR: [
-          { isApproved: false },
-          { role: 'PENDING' }
+        AND: [
+          {
+            username: {
+              not: {
+                startsWith: 'temp_'
+              }
+            }
+          },
+          {
+            OR: [
+              { isApproved: false },
+              { role: 'PENDING' }
+            ]
+          }
         ]
       },
       orderBy: { createdAt: 'desc' },
@@ -41,8 +52,17 @@ export default async function UsersPage() {
     }),
     prisma.user.findMany({
       where: {
-        isApproved: true,
-        role: { not: 'PENDING' }
+        AND: [
+          {
+            username: {
+              not: {
+                startsWith: 'temp_'
+              }
+            }
+          },
+          { isApproved: true },
+          { role: { not: 'PENDING' } }
+        ]
       },
       orderBy: { createdAt: 'desc' },
       select: {
