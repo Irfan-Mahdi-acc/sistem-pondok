@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import {
   Table,
   TableBody,
@@ -19,8 +20,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, UserPlus } from "lucide-react"
+import { MoreHorizontal, UserPlus, Eye } from "lucide-react"
 import { AssignApplicantDialog } from "./assign-applicant-dialog"
+import { ApplicantDetailDialog } from "./applicant-detail-dialog"
 import { updatePSBRegistrationStatus } from "@/actions/psb-actions"
 import { toast } from "sonner"
 import { format } from "date-fns"
@@ -33,21 +35,37 @@ interface ApplicantTableProps {
 }
 
 export function ApplicantTable({ registrations, lembagas, allKelas }: ApplicantTableProps) {
+  const router = useRouter()
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false)
   const [selectedRegistration, setSelectedRegistration] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
 
   const handleStatusChange = async (id: string, status: string) => {
-    const result = await updatePSBRegistrationStatus(id, status)
-    if (result.success) {
-      toast.success(`Status berhasil diubah menjadi ${status}`)
-    } else {
+    setLoading(true)
+    try {
+      const result = await updatePSBRegistrationStatus(id, status)
+      if (result.success) {
+        toast.success(`Status berhasil diubah menjadi ${status}`)
+        router.refresh()
+      } else {
+        toast.error(result.error || "Gagal mengubah status")
+      }
+    } catch (error) {
       toast.error("Gagal mengubah status")
+    } finally {
+      setLoading(false)
     }
   }
 
   const handleAssignClick = (registration: any) => {
     setSelectedRegistration(registration)
     setAssignDialogOpen(true)
+  }
+
+  const handleDetailClick = (registration: any) => {
+    setSelectedRegistration(registration)
+    setDetailDialogOpen(true)
   }
 
   const getStatusColor = (status: string) => {
@@ -131,6 +149,14 @@ export function ApplicantTable({ registrations, lembagas, allKelas }: ApplicantT
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDetailClick(reg)}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        Detail
+                      </Button>
                       {reg.status === 'ACCEPTED' && !reg.assignedLembagaId && (
                         <Button
                           size="sm"
@@ -143,7 +169,7 @@ export function ApplicantTable({ registrations, lembagas, allKelas }: ApplicantT
                       )}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
+                          <Button variant="ghost" className="h-8 w-8 p-0" disabled={loading}>
                             <span className="sr-only">Open menu</span>
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
@@ -182,13 +208,20 @@ export function ApplicantTable({ registrations, lembagas, allKelas }: ApplicantT
       </div>
 
       {selectedRegistration && (
-        <AssignApplicantDialog
-          registration={selectedRegistration}
-          lembagas={lembagas}
-          allKelas={allKelas}
-          open={assignDialogOpen}
-          onOpenChange={setAssignDialogOpen}
-        />
+        <>
+          <AssignApplicantDialog
+            registration={selectedRegistration}
+            lembagas={lembagas}
+            allKelas={allKelas}
+            open={assignDialogOpen}
+            onOpenChange={setAssignDialogOpen}
+          />
+          <ApplicantDetailDialog
+            registration={selectedRegistration}
+            open={detailDialogOpen}
+            onOpenChange={setDetailDialogOpen}
+          />
+        </>
       )}
     </>
   )
