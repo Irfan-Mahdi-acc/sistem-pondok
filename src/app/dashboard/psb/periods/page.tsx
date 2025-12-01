@@ -1,6 +1,7 @@
 import { getPSBPeriods } from "@/actions/psb-actions"
 import { prisma } from "@/lib/prisma"
 import { PeriodDialog } from "@/components/psb/period-dialog"
+import { PeriodToggle } from "@/components/psb/period-toggle"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { format } from "date-fns"
 import { id } from "date-fns/locale"
@@ -59,7 +60,12 @@ export default async function PeriodsPage() {
                   <span className="font-medium">Biaya Daftar Ulang:</span> Rp {period.reregistrationFee?.toLocaleString('id-ID') || 0}
                 </p>
               </div>
-              <div className="mt-4 flex justify-end">
+              <div className="mt-4 flex items-center justify-between">
+                <PeriodToggle 
+                  periodId={period.id}
+                  isActive={period.isActive}
+                  periodName={period.name}
+                />
                 <PeriodDialog 
                   period={period} 
                   lembagas={lembagas}
