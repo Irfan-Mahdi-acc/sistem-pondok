@@ -8,7 +8,7 @@ export default auth((req) => {
     const user = req.auth?.user
 
     // Public routes that don't require authentication
-    const publicRoutes = ['/login', '/api/auth']
+    const publicRoutes = ['/login', '/api/auth', '/psb', '/register']
     const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
 
     // Redirect to login if not authenticated
