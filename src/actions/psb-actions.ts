@@ -3,12 +3,7 @@
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
-
-// Helper: Calculate total fee from breakdown
-export function calculateTotalFee(feeDetails: Record<string, number> | null | undefined): number {
-  if (!feeDetails) return 0
-  return Object.values(feeDetails).reduce((sum, amount) => sum + amount, 0)
-}
+import { calculateTotalFee } from "@/lib/psb-helpers"
 
 // Schemas
 const PSBPeriodSchema = z.object({
@@ -19,8 +14,8 @@ const PSBPeriodSchema = z.object({
   isActive: z.boolean().optional(),
   quota: z.number().optional(),
   lembagaId: z.string().min(1, "Lembaga wajib dipilih"),
-  registrationFeeDetails: z.record(z.number()).optional(),
-  reregistrationFeeDetails: z.record(z.number()).optional(),
+  registrationFeeDetails: z.record(z.string(), z.number()).optional(),
+  reregistrationFeeDetails: z.record(z.string(), z.number()).optional(),
 })
 
 const PSBRegistrationSchema = z.object({

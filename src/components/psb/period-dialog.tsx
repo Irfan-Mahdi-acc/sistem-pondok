@@ -43,8 +43,8 @@ const formSchema = z.object({
   isActive: z.boolean(),
   quota: z.number().optional(),
   lembagaId: z.string().min(1, "Lembaga wajib dipilih"),
-  registrationFeeDetails: z.record(z.number()).optional(),
-  reregistrationFeeDetails: z.record(z.number()).optional(),
+  registrationFeeDetails: z.record(z.string(), z.number()).optional(),
+  reregistrationFeeDetails: z.record(z.string(), z.number()).optional(),
 })
 
 interface PeriodDialogProps {
