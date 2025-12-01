@@ -185,10 +185,22 @@ export async function createPSBRegistration(data: z.infer<typeof PSBRegistration
         reregistrationFeeDetails: period?.reregistrationFeeDetails as any,
       }
     })
+    
+    // Revalidate all PSB pages
+    revalidatePath('/dashboard/psb/applicants')
+    revalidatePath('/dashboard/psb')
+    revalidatePath('/psb')
+    
+    console.log('Registration created successfully:', registrationNo)
     return { success: true, data: registration }
   } catch (error) {
     console.error('Failed to create registration:', error)
-    return { success: false, error: 'Gagal melakukan pendaftaran' }
+    // Log more details for debugging
+    if (error instanceof Error) {
+      console.error('Error message:', error.message)
+      console.error('Error stack:', error.stack)
+    }
+    return { success: false, error: 'Gagal melakukan pendaftaran. Silakan coba lagi.' }
   }
 }
 
