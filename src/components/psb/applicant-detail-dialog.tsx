@@ -12,7 +12,6 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import { id } from "date-fns/locale"
-import { Separator } from "@/components/ui/separator"
 
 interface ApplicantDetailDialogProps {
   registration: any
@@ -60,7 +59,7 @@ export function ApplicantDetailDialog({ registration, open, onOpenChange }: Appl
             </div>
           </div>
 
-          <Separator />
+          <div className="border-t my-4" />
 
           {/* Personal Info */}
           <div>
@@ -95,7 +94,7 @@ export function ApplicantDetailDialog({ registration, open, onOpenChange }: Appl
             </div>
           </div>
 
-          <Separator />
+          <div className="border-t my-4" />
 
           {/* Parent Info */}
           <div>
@@ -112,7 +111,7 @@ export function ApplicantDetailDialog({ registration, open, onOpenChange }: Appl
             </div>
           </div>
 
-          <Separator />
+          <div className="border-t my-4" />
 
           {/* School Info */}
           {registration.schoolOrigin && (
@@ -138,7 +137,7 @@ export function ApplicantDetailDialog({ registration, open, onOpenChange }: Appl
                   )}
                 </div>
               </div>
-              <Separator />
+              <div className="border-t my-4" />
             </>
           )}
 
@@ -160,7 +159,7 @@ export function ApplicantDetailDialog({ registration, open, onOpenChange }: Appl
           {/* Assignment Info */}
           {registration.assignedLembagaId && (
             <>
-              <Separator />
+              <div className="border-t my-4" />
               <div>
                 <h4 className="font-semibold mb-3">Penempatan</h4>
                 <div className="grid grid-cols-2 gap-3 text-sm">
@@ -186,7 +185,7 @@ export function ApplicantDetailDialog({ registration, open, onOpenChange }: Appl
           {/* Fee Breakdown */}
           {registration.registrationFeeDetails && (
             <>
-              <Separator />
+              <div className="border-t my-4" />
               <div>
                 <h4 className="font-semibold mb-3">Rincian Biaya Pendaftaran</h4>
                 <div className="space-y-2 text-sm">
@@ -206,7 +205,7 @@ export function ApplicantDetailDialog({ registration, open, onOpenChange }: Appl
           )}
 
           {/* Timestamps */}
-          <Separator />
+          <div className="border-t my-4" />
           <div className="text-xs text-muted-foreground">
             <p>Tanggal Daftar: {format(new Date(registration.createdAt), "d MMMM yyyy HH:mm", { locale: id })}</p>
             {registration.updatedAt && registration.updatedAt !== registration.createdAt && (
