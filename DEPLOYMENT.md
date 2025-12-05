@@ -31,9 +31,41 @@ The script will automatically:
 2. Install dependencies
 3. Run database migrations
 4. Build the application
-5. Copy static files
+5. **Copy static files** (critical for standalone mode!)
 6. Restart PM2 process
 7. Run health check
+
+---
+
+## ⚠️ Important: Next.js Standalone Mode
+
+This project uses Next.js `output: 'standalone'` mode for optimized production builds.
+
+### What This Means
+
+When building with standalone mode:
+- ✅ Server code is bundled into `.next/standalone/`
+- ❌ Static assets (`_next/static/`) are **NOT** automatically included
+- ❌ Public files (`public/`) are **NOT** automatically included
+
+### Critical Requirement
+
+**You MUST manually copy static files after building:**
+
+```bash
+# After npm run build, always run:
+cp -r .next/static .next/standalone/.next/
+cp -r public .next/standalone/
+```
+
+**If you skip this step, you will get:**
+- 404 errors for JavaScript chunks
+- MIME type errors
+- Application won't load properly
+
+### Automated Script Handles This
+
+The `deploy-vps.sh` script automatically copies these files. If deploying manually, don't forget this step!
 
 ---
 
@@ -79,14 +111,24 @@ npx prisma generate
 npm run build
 ```
 
-### 8. Copy Static Files
+### 8. Copy Static Files (CRITICAL!)
+
+> **⚠️ WARNING:** This step is REQUIRED for standalone builds. Skipping it will cause 404 errors!
+
 ```bash
+# Copy static assets to standalone build
+cp -r .next/static .next/standalone/.next/
+
 # Copy public folder to standalone build
 cp -r public .next/standalone/
 
 # Ensure uploads directory exists with proper permissions
 mkdir -p .next/standalone/public/uploads
 chmod -R 755 .next/standalone/public/uploads
+
+# Verify files were copied successfully
+ls -la .next/standalone/.next/static/
+ls -la .next/standalone/public/
 ```
 
 ### 9. Restart Application
@@ -228,6 +270,58 @@ psql -U pondok_user -d sistem_pondok
 ---
 
 ## Troubleshooting
+
+### ❌ 404 Errors for JavaScript Chunks
+
+**Symptoms:**
+```
+Failed to load resource: /_next/static/chunks/9133986d7fccc522.js (404)
+Refused to execute script because its MIME type ('') is not executable
+```
+
+**Root Cause:**
+Static files were not copied to the standalone build directory.
+
+**Solution:**
+
+1. **SSH into VPS:**
+   ```bash
+   ssh user@your-vps-ip
+   cd /var/www/sistem-pondok
+   ```
+
+2. **Verify static files exist in build:**
+   ```bash
+   ls -la .next/static/
+   ```
+
+3. **Copy static files to standalone:**
+   ```bash
+   cp -r .next/static .next/standalone/.next/
+   cp -r public .next/standalone/
+   ```
+
+4. **Verify files were copied:**
+   ```bash
+   ls -la .next/standalone/.next/static/
+   ls -la .next/standalone/public/
+   ```
+
+5. **Restart application:**
+   ```bash
+   pm2 restart web
+   ```
+
+6. **Check browser console:**
+   - Refresh the page
+   - Open browser DevTools (F12)
+   - Check Console tab - should have no 404 errors
+   - Check Network tab - all chunks should load with 200 status
+
+**Prevention:**
+Always use the `deploy-vps.sh` script which handles static file copying automatically.
+
+---
 
 ### Git Authentication Issues
 

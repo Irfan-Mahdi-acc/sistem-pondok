@@ -46,19 +46,52 @@ echo ""
 
 # Step 5: Copy Static Files
 echo -e "${YELLOW}📂 Copying static files to standalone build...${NC}"
-cp -r public .next/standalone/ 2>/dev/null || true
-mkdir -p .next/standalone/.next
-cp -r .next/static .next/standalone/.next/ 2>/dev/null || true
-mkdir -p .next/standalone/public/uploads
-chmod -R 755 .next/standalone/public/uploads
+
+# Ensure standalone directory exists
+if [ ! -d ".next/standalone" ]; then
+    echo -e "${RED}❌ Error: .next/standalone directory not found!${NC}"
+    echo "The build may have failed. Please check build logs."
+    exit 1
+fi
+
+# Copy public folder
+echo "Copying public folder..."
+if [ -d "public" ]; then
+    cp -r public .next/standalone/ || { echo -e "${RED}❌ Failed to copy public folder${NC}"; exit 1; }
+    # Ensure uploads directory exists with correct permissions
+    mkdir -p .next/standalone/public/uploads
+    chmod -R 755 .next/standalone/public
+    echo -e "${GREEN}✅ Public folder copied${NC}"
+else
+    echo -e "${YELLOW}⚠️  Warning: public folder not found${NC}"
+fi
+
+# Copy static assets
+echo "Copying .next/static folder..."
+if [ -d ".next/static" ]; then
+    mkdir -p .next/standalone/.next
+    cp -r .next/static .next/standalone/.next/ || { echo -e "${RED}❌ Failed to copy static folder${NC}"; exit 1; }
+    echo -e "${GREEN}✅ Static assets copied${NC}"
+else
+    echo -e "${RED}❌ Error: .next/static directory not found!${NC}"
+    exit 1
+fi
 
 # Verify static files were copied
 if [ -d ".next/standalone/.next/static" ]; then
     STATIC_COUNT=$(find .next/standalone/.next/static -type f | wc -l)
-    echo -e "${GREEN}✅ Static files copied ($STATIC_COUNT files)${NC}"
+    echo -e "${GREEN}✅ Verified: $STATIC_COUNT static files in place${NC}"
 else
-    echo -e "${RED}❌ Warning: Static files directory not found!${NC}"
-    echo "This may cause 404 errors for CSS/JS files"
+    echo -e "${RED}❌ Error: Static files verification failed!${NC}"
+    exit 1
+fi
+
+# Verify public files were copied
+if [ -d ".next/standalone/public" ]; then
+    PUBLIC_COUNT=$(find .next/standalone/public -type f | wc -l)
+    echo -e "${GREEN}✅ Verified: $PUBLIC_COUNT public files in place${NC}"
+else
+    echo -e "${YELLOW}⚠️  Warning: Public files verification failed${NC}"
 fi
 echo ""
 
