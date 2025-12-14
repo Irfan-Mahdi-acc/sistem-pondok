@@ -37,13 +37,6 @@ export const metadata: Metadata = {
     template: "%s | Ponpes Tadzimussunnah"
   },
   description: "Sistem Manajemen Pondok Pesantren Tadzimussunnah",
-  icons: {
-    icon: [
-      { url: '/favicon.png', type: 'image/png' },
-      { url: '/logo-pondok.png', type: 'image/png', sizes: '512x512' }
-    ],
-    apple: '/logo-pondok.png',
-  },
 };
 
 export default function RootLayout({
