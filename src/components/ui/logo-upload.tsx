@@ -61,20 +61,45 @@ export function LogoUpload({ currentLogoUrl, onLogoChange, label, id }: LogoUplo
       <Label htmlFor={id}>{label}</Label>
       
       {preview ? (
-        <div className="relative w-32 h-32 border rounded-lg overflow-hidden">
-          <Image
-            src={preview}
-            alt="Logo preview"
-            fill
-            className="object-contain"
-          />
-          <button
-            type="button"
-            onClick={handleRemove}
-            className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
-          >
-            <X className="h-3 w-3" />
-          </button>
+        <div className="space-y-3">
+          <div className="relative w-40 h-40 border-2 rounded-lg overflow-hidden bg-white p-4 shadow-md">
+            <Image
+              src={preview}
+              alt="Logo preview"
+              fill
+              className="object-contain p-2"
+            />
+          </div>
+          <div className="flex gap-2">
+            <Input
+              id={id}
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              disabled={uploading}
+              className="hidden"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => document.getElementById(id)?.click()}
+              disabled={uploading}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              {uploading ? 'Uploading...' : 'Ganti Logo'}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleRemove}
+              disabled={uploading}
+            >
+              <X className="h-4 w-4 mr-2" />
+              Hapus
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="flex items-center gap-2">
