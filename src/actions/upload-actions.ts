@@ -2,6 +2,7 @@
 
 import fs from 'fs/promises'
 import path from 'path'
+import { validateUploadedFile, generateSecureFilename } from '@/lib/file-validator'
 
 export async function uploadImage(formData: FormData): Promise<{ success: boolean; url?: string; error?: string }> {
   try {
@@ -11,15 +12,12 @@ export async function uploadImage(formData: FormData): Promise<{ success: boolea
       return { success: false, error: 'No file provided' }
     }
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      return { success: false, error: 'File must be an image' }
-    }
-
-    // Validate file size (5MB max)
-    const maxSize = 5 * 1024 * 1024 // 5MB
-    if (file.size > maxSize) {
-      return { success: false, error: 'File size must be less than 5MB' }
+    // Validate file with comprehensive security checks
+    const validation = await validateUploadedFile(file)
+    
+    if (!validation.isValid) {
+      console.warn('File validation failed:', validation.error)
+      return { success: false, error: validation.error }
     }
 
     const bytes = await file.arrayBuffer()
@@ -33,16 +31,18 @@ export async function uploadImage(formData: FormData): Promise<{ success: boolea
       await fs.mkdir(uploadDir, { recursive: true })
     }
 
-    // Generate unique filename
-    const timestamp = Date.now()
-    const randomString = Math.random().toString(36).substring(7)
-    // Sanitize filename to remove special chars
-    const sanitizedName = file.name.replace(/[^a-zA-Z0-9.]/g, '')
-    const filename = `${timestamp}-${randomString}-${sanitizedName}`
+    // Generate secure filename using only validated extension
+    const filename = generateSecureFilename(validation.safeExtension!)
     const filepath = path.join(uploadDir, filename)
 
     // Write file to disk
     await fs.writeFile(filepath, buffer)
+
+    console.log('File uploaded successfully:', {
+      filename,
+      detectedType: validation.detectedType,
+      size: file.size,
+    })
 
     // Return public URL
     const publicUrl = `/uploads/${filename}`

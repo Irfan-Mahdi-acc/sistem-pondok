@@ -15,20 +15,34 @@ const LembagaSchema = z.object({
 })
 
 export async function getLembagas() {
-  const user = await getCurrentUserWithProfile()
-  if (!user) return []
-
-  const accessFilter = getLembagaAccessFilter(user)
-
-  return await prisma.lembaga.findMany({
-    where: accessFilter,
-    orderBy: { name: 'asc' },
-    include: {
-      _count: {
-        select: { santris: true, kelas: true }
-      }
+  try {
+    const user = await getCurrentUserWithProfile()
+    console.log('getLembagas user:', user?.id, user?.role)
+    
+    if (!user) {
+      console.log('getLembagas: No user found')
+      return []
     }
-  })
+
+    const accessFilter = getLembagaAccessFilter(user)
+    console.log('getLembagas filter:', JSON.stringify(accessFilter))
+
+    const lembagas = await prisma.lembaga.findMany({
+      where: accessFilter,
+      orderBy: { name: 'asc' },
+      include: {
+        _count: {
+          select: { santris: true, kelas: true }
+        }
+      }
+    })
+    
+    console.log('getLembagas count:', lembagas.length)
+    return lembagas
+  } catch (error) {
+    console.error('getLembagas error:', error)
+    return []
+  }
 }
 
 export async function getLembagaById(id: string) {

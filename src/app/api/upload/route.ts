@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 import { existsSync } from 'fs'
+import { validateUploadedFile, generateSecureFilename } from '@/lib/file-validator'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,19 +16,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
+    // Validate file with comprehensive security checks
+    const validation = await validateUploadedFile(file)
+    
+    if (!validation.isValid) {
+      console.warn('File validation failed:', validation.error)
       return NextResponse.json(
-        { success: false, error: 'File must be an image' },
-        { status: 400 }
-      )
-    }
-
-    // Validate file size (5MB max)
-    const maxSize = 5 * 1024 * 1024 // 5MB
-    if (file.size > maxSize) {
-      return NextResponse.json(
-        { success: false, error: 'File size must be less than 5MB' },
+        { success: false, error: validation.error },
         { status: 400 }
       )
     }
@@ -38,11 +33,8 @@ export async function POST(request: NextRequest) {
       await mkdir(uploadsDir, { recursive: true })
     }
 
-    // Generate unique filename
-    const timestamp = Date.now()
-    const randomString = Math.random().toString(36).substring(7)
-    const extension = file.name.split('.').pop()
-    const filename = `${timestamp}-${randomString}.${extension}`
+    // Generate secure filename using only validated extension
+    const filename = generateSecureFilename(validation.safeExtension!)
 
     // Convert file to buffer and save
     const bytes = await file.arrayBuffer()
@@ -50,11 +42,19 @@ export async function POST(request: NextRequest) {
     const filepath = join(uploadsDir, filename)
     
     await writeFile(filepath, buffer)
-    console.log('File uploaded successfully:', filepath)
+    console.log('File uploaded successfully:', {
+      filename,
+      detectedType: validation.detectedType,
+      size: file.size,
+    })
 
     // Return public URL
     const url = `/uploads/${filename}`
-    return NextResponse.json({ success: true, url })
+    return NextResponse.json({ 
+      success: true, 
+      url,
+      detectedType: validation.detectedType,
+    })
   } catch (error) {
     console.error('Upload error:', error)
     return NextResponse.json(
