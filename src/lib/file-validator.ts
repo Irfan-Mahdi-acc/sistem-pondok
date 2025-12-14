@@ -138,22 +138,26 @@ export async function validateUploadedFile(file: File): Promise<FileValidationRe
       }
     }
 
-    // 5. Verify MIME type matches detected type
-    const expectedMimeTypes: Record<string, string[]> = {
-      'jpeg': ['image/jpeg', 'image/jpg'],
-      'png': ['image/png'],
-      'gif': ['image/gif'],
-      'webp': ['image/webp'],
-      'svg': ['image/svg+xml'],
-    }
-
-    const allowedMimes = expectedMimeTypes[detectedType] || []
-    if (!allowedMimes.includes(file.type)) {
+    // 5. Verify MIME type is an image type (more lenient check)
+    // We trust the magic bytes validation above, so we only verify it's an image MIME type
+    if (!file.type.startsWith('image/')) {
+      console.warn('File validation: MIME type is not an image', {
+        detectedType,
+        reportedMimeType: file.type,
+        fileName: file.name,
+      })
       return {
         isValid: false,
-        error: `MIME type mismatch. File appears to be ${detectedType} but MIME type is ${file.type}`,
+        error: `Invalid file type. Expected an image but got: ${file.type}`,
       }
     }
+
+    console.log('File validation passed:', {
+      detectedType,
+      reportedMimeType: file.type,
+      fileName: file.name,
+      fileSize: file.size,
+    })
 
     // 6. Get safe extension
     const safeExtension = getSafeExtension(detectedType)

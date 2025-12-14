@@ -9,14 +9,24 @@ export async function uploadImage(formData: FormData): Promise<{ success: boolea
     const file = formData.get('file') as File
     
     if (!file) {
+      console.error('Upload error: No file provided')
       return { success: false, error: 'No file provided' }
     }
+
+    console.log('Starting file upload:', {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+    })
 
     // Validate file with comprehensive security checks
     const validation = await validateUploadedFile(file)
     
     if (!validation.isValid) {
-      console.warn('File validation failed:', validation.error)
+      console.warn('File validation failed:', {
+        fileName: file.name,
+        error: validation.error,
+      })
       return { success: false, error: validation.error }
     }
 
@@ -28,6 +38,7 @@ export async function uploadImage(formData: FormData): Promise<{ success: boolea
     try {
       await fs.access(uploadDir)
     } catch {
+      console.log('Creating uploads directory:', uploadDir)
       await fs.mkdir(uploadDir, { recursive: true })
     }
 
@@ -42,6 +53,7 @@ export async function uploadImage(formData: FormData): Promise<{ success: boolea
       filename,
       detectedType: validation.detectedType,
       size: file.size,
+      path: filepath,
     })
 
     // Return public URL
@@ -50,6 +62,7 @@ export async function uploadImage(formData: FormData): Promise<{ success: boolea
     return { success: true, url: publicUrl }
   } catch (error) {
     console.error('Upload error:', error)
-    return { success: false, error: 'Failed to upload file' }
+    const errorMessage = error instanceof Error ? error.message : 'Failed to upload file'
+    return { success: false, error: errorMessage }
   }
 }
