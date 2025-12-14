@@ -22,21 +22,31 @@ export function ImageUpload({ value, onChange, onRemove, label = "Gambar (Opsion
     const file = e.target.files?.[0]
     if (!file) return
 
+    console.log('ImageUpload: Starting upload for file:', {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+    })
+
     setIsUploading(true)
     const formData = new FormData()
     formData.append('file', file)
 
     try {
+      console.log('ImageUpload: Calling uploadImage action...')
       const res = await uploadImage(formData)
+      console.log('ImageUpload: Upload response:', res)
+      
       if (res.success && res.url) {
+        console.log('ImageUpload: Upload successful, URL:', res.url)
         onChange(res.url)
       } else {
         const errorMessage = res.error || 'Unknown error'
-        console.error('Upload failed:', errorMessage)
+        console.error('ImageUpload: Upload failed:', errorMessage)
         alert(`Gagal mengupload gambar: ${errorMessage}`)
       }
     } catch (error) {
-      console.error('Upload error:', error)
+      console.error('ImageUpload: Exception during upload:', error)
       alert('Terjadi kesalahan saat mengupload gambar. Silakan coba lagi.')
     } finally {
       setIsUploading(false)

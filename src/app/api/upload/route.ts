@@ -10,17 +10,27 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File
     
     if (!file) {
+      console.error('API Upload: No file provided')
       return NextResponse.json(
         { success: false, error: 'No file provided' },
         { status: 400 }
       )
     }
 
+    console.log('API Upload: Starting file upload:', {
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+    })
+
     // Validate file with comprehensive security checks
     const validation = await validateUploadedFile(file)
     
     if (!validation.isValid) {
-      console.warn('File validation failed:', validation.error)
+      console.warn('API Upload: File validation failed:', {
+        fileName: file.name,
+        error: validation.error,
+      })
       return NextResponse.json(
         { success: false, error: validation.error },
         { status: 400 }
@@ -30,6 +40,7 @@ export async function POST(request: NextRequest) {
     // Create uploads directory if it doesn't exist
     const uploadsDir = join(process.cwd(), 'public', 'uploads')
     if (!existsSync(uploadsDir)) {
+      console.log('API Upload: Creating uploads directory:', uploadsDir)
       await mkdir(uploadsDir, { recursive: true })
     }
 
@@ -42,10 +53,11 @@ export async function POST(request: NextRequest) {
     const filepath = join(uploadsDir, filename)
     
     await writeFile(filepath, buffer)
-    console.log('File uploaded successfully:', {
+    console.log('API Upload: File uploaded successfully:', {
       filename,
       detectedType: validation.detectedType,
       size: file.size,
+      path: filepath,
     })
 
     // Return public URL
@@ -56,9 +68,10 @@ export async function POST(request: NextRequest) {
       detectedType: validation.detectedType,
     })
   } catch (error) {
-    console.error('Upload error:', error)
+    console.error('API Upload error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Failed to upload file'
     return NextResponse.json(
-      { success: false, error: 'Failed to upload file' },
+      { success: false, error: errorMessage },
       { status: 500 }
     )
   }
