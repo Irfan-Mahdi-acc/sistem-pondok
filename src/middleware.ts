@@ -7,8 +7,32 @@ export default auth((req) => {
     const isLoggedIn = !!req.auth
     const user = req.auth?.user
 
+    // Check for API Key authentication on API routes
+    const isApiRoute = pathname.startsWith('/api/lembaga') || 
+                       pathname.startsWith('/api/ustadz') || 
+                       pathname.startsWith('/api/santri') || 
+                       pathname.startsWith('/api/kelas') || 
+                       pathname.startsWith('/api/mapel')
+    
+    if (isApiRoute) {
+      const apiKey = req.headers.get('X-API-Key')
+      const validApiKey = process.env.API_SECRET_KEY
+      
+      // If valid API key is provided, allow access
+      if (apiKey && validApiKey && apiKey === validApiKey) {
+        return NextResponse.next()
+      }
+      // If no API key or invalid, return 401 instead of redirecting to login
+      if (!apiKey || apiKey !== validApiKey) {
+        return NextResponse.json(
+          { success: false, error: 'Invalid or missing API Key' },
+          { status: 401 }
+        )
+      }
+    }
+
     // Public routes that don't require authentication
-    const publicRoutes = ['/login', '/api/auth', '/psb', '/register']
+    const publicRoutes = ['/login', '/api/auth', '/register']
     const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
 
     // Redirect to login if not authenticated

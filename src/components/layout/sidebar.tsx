@@ -51,11 +51,6 @@ const santriItems = [
   },
 ]
 
-const psbItems = [
-  { href: '/dashboard/psb', label: 'Overview', icon: LayoutDashboard },
-  { href: '/dashboard/psb/periods', label: 'Gelombang', icon: Calendar },
-  { href: '/dashboard/psb/applicants', label: 'Pendaftar', icon: Users },
-]
 
 const academicItems = [
   { href: '/dashboard/academic/calendar', label: 'Kalender Akademik', icon: Calendar },
@@ -360,13 +355,6 @@ export function Sidebar() {
           isCollapsed={isCollapsed}
         />
 
-        <NavSection 
-          title="PSB" 
-          icon={UserPlus} 
-          items={psbItems} 
-          pathname={pathname}
-          isCollapsed={isCollapsed}
-        />
 
         <NavSection 
           title="Akademik" 

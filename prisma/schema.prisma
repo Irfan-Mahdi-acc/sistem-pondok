@@ -166,8 +166,6 @@ model Lembaga {
   santris           Santri[]
   documents         DocumentArchive[]
   bookkeepings      Bookkeeping[]
-  psbPeriods        PSBPeriod[]
-  psbRegistrations  PSBRegistration[]  @relation("AssignedLembaga")
 }
 
 model LembagaGradeCategory {
@@ -231,7 +229,6 @@ model Santri {
   classAsLeader   Kelas?              @relation("ClassLeader")
   kelasHistory    KelasHistory[]
   nilais          Nilai[]
-  psbRegistration PSBRegistration?
   piketSchedules  PiketSchedule[]
   asrama          Asrama?             @relation("AsramaSantris", fields: [asramaId], references: [id])
   halqoh          Halqoh?             @relation(fields: [halqohId], references: [id])
@@ -261,7 +258,6 @@ model Kelas {
   mapels           Mapel[]
   piketSchedules   PiketSchedule[]
   santris          Santri[]
-  psbRegistrations PSBRegistration[]  @relation("AssignedKelas")
 }
 
 model JamPelajaran {
@@ -769,105 +765,6 @@ model MaintenanceLog {
   asset       Asset    @relation(fields: [assetId], references: [id])
 }
 
-model PSBPeriod {
-  id                       String            @id @default(cuid())
-  name                     String
-  description              String?
-  startDate                DateTime
-  endDate                  DateTime
-  isActive                 Boolean           @default(false)
-  quota                    Int?
-  
-  // Lembaga relation
-  lembagaId                String
-  lembaga                  Lembaga           @relation(fields: [lembagaId], references: [id])
-  
-  // Fee breakdown (JSON)
-  registrationFeeDetails   Json?             // { "Formulir": 50000, "Administrasi": 100000 }
-  reregistrationFeeDetails Json?             // { "Pembangunan": 500000, "Seragam": 300000 }
-  
-  // Calculated totals
-  registrationFee          Float             @default(0)
-  reregistrationFee        Float             @default(0)
-  
-  createdAt                DateTime          @default(now())
-  updatedAt                DateTime          @updatedAt
-  registrations            PSBRegistration[]
-}
-
-model PSBTrack {
-  id            String            @id @default(cuid())
-  name          String
-  description   String?
-  isActive      Boolean           @default(true)
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  registrations PSBRegistration[]
-}
-
-model PSBRegistration {
-  id                       String     @id @default(cuid())
-  registrationNo           String     @unique
-  name                     String
-  nisn                     String?
-  gender                   String
-  birthPlace               String
-  birthDate                DateTime
-  address                  String
-  fatherName               String
-  motherName               String
-  phone                    String
-  status                   String     @default("PENDING") // PENDING, PAYMENT_VERIFIED, INTERVIEW, ACCEPTED, ASSIGNED, REREGISTRATION_PENDING, CONFIRMED, REJECTED, DECLINED
-
-  // Relations
-  periodId                 String?
-  period                   PSBPeriod? @relation(fields: [periodId], references: [id])
-  trackId                  String?
-  track                    PSBTrack?  @relation(fields: [trackId], references: [id])
-  
-  // School Origin
-  schoolOrigin             String?
-  schoolAddress            String?
-  schoolNpsn               String?
-
-  // Additional Info
-  parentDetails            Json?    
-  documents                Json?    // Store URLs: { kk: "url", akta: "url", ijazah: "url" }
-  
-  // Fee details (copied from period at registration time)
-  registrationFeeDetails   Json?
-  reregistrationFeeDetails Json?
-  
-  // Payment
-  registrationFee          Float?
-  paymentStatus            String     @default("UNPAID") // UNPAID, PAID, VERIFIED
-  paymentProof             String?
-  paymentVerifiedAt        DateTime?
-  paymentVerifiedBy        String?
-  
-  // Re-registration payment
-  reregistrationProof      String?
-  reregistrationStatus     String     @default("UNPAID") // UNPAID, PAID, VERIFIED
-  reregistrationVerifiedAt DateTime?
-  
-  // Assignment to Lembaga & Kelas
-  assignedLembagaId        String?
-  assignedLembaga          Lembaga?   @relation("AssignedLembaga", fields: [assignedLembagaId], references: [id])
-  assignedKelasId          String?
-  assignedKelas            Kelas?     @relation("AssignedKelas", fields: [assignedKelasId], references: [id])
-  assignedAt               DateTime?
-  assignedBy               String?
-  
-  // Selection
-  testScore                Float?
-  interviewNote            String?
-  
-  santriId                 String?    @unique
-  santri                   Santri?    @relation(fields: [santriId], references: [id])
-  
-  createdAt                DateTime   @default(now())
-  updatedAt                DateTime   @updatedAt
-}
 
 model DocumentArchive {
   id          String   @id @default(cuid())

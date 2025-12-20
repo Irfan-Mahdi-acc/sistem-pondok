@@ -1,0 +1,122 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            set -e
+            
+            echo "🚀 Starting deployment..."
+            
+            # Navigate to application directory
+            cd /var/www/siakad.tsn.ponpes.id
+            
+            # Pull latest changes
+            echo "📥 Pulling latest changes from GitHub..."
+            git pull origin main
+            
+            # Install dependencies
+            echo "📦 Installing dependencies..."
+            npm ci --production=false
+            
+            # Run database migrations
+            echo "🗄️  Running database migrations..."
+            npx prisma migrate deploy
+            
+            # Generate Prisma client
+            echo "⚙️  Generating Prisma client..."
+            npx prisma generate
+            
+            # Build application
+            echo "🔨 Building application..."
+            npm run build
+            
+            # Copy static files for standalone mode
+            echo "📋 Copying static files..."
+            cp -r .next/static .next/standalone/.next/ 2>/dev/null || true
+            cp -r public .next/standalone/ 2>/dev/null || true
+            
+            # Ensure uploads directory exists with correct permissions
+            echo "📁 Setting up uploads directory..."
+            mkdir -p .next/standalone/public/uploads
+            chmod -R 755 .next/standalone/public/uploads
+            
+            # Restart PM2
+            echo "🔄 Restarting PM2..."
+            pm2 restart siakad-tsn || pm2 start ecosystem.config.js
+            
+            # Save PM2 configuration
+            pm2 save
+            
+            echo "✅ Deployment completed successfully!"
+      
+      - name: Health Check
+        run: |
+          echo "🏥 Performing health check..."
+          sleep 10
+          
+          response=$(curl -s -o /dev/null -w "%{http_code}" https://siakad.tsn.ponpes.id)
+          
+          if [ $response -eq 200 ] || [ $response -eq 301 ] || [ $response -eq 302 ]; then
+            echo "✅ Health check passed! Status code: $response"
+          else
+            echo "❌ Health check failed! Status code: $response"
+            exit 1
+          fi
+      
+      - name: Send Telegram Notification (Success)
+        if: success() && secrets.TELEGRAM_BOT_TOKEN != ''
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            ✅ Deployment Successful!
+            
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Author: ${{ github.actor }}
+            
+            🌐 https://siakad.tsn.ponpes.id
+      
+      - name: Send Telegram Notification (Failure)
+        if: failure() && secrets.TELEGRAM_BOT_TOKEN != ''
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TELEGRAM_CHAT_ID }}
+          token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          message: |
+            ❌ Deployment Failed!
+            
+            Repository: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Author: ${{ github.actor }}
+            
+            Please check GitHub Actions logs.

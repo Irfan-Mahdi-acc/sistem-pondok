@@ -1,9 +1,9 @@
 module.exports = {
   apps: [{
-    name: 'web',
+    name: 'siakad-tsn',
     script: '.next/standalone/server.js',
-    cwd: '/var/www/sistem-pondok',
-    instances: 1,
+    cwd: '/var/www/siakad.tsn.ponpes.id',
+    instances: 2,
     exec_mode: 'cluster',
     autorestart: true,
     watch: false,
@@ -13,9 +13,9 @@ module.exports = {
       PORT: 3000,
       HOSTNAME: '0.0.0.0'
     },
-    error_file: './logs/pm2-error.log',
-    out_file: './logs/pm2-out.log',
-    log_file: './logs/pm2-combined.log',
+    error_file: '/var/www/logs/siakad-error.log',
+    out_file: '/var/www/logs/siakad-out.log',
+    log_file: '/var/www/logs/siakad-combined.log',
     time: true,
     merge_logs: true,
     log_date_format: 'YYYY-MM-DD HH:mm:ss Z',

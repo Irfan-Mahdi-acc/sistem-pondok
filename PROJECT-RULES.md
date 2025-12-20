@@ -1,8 +1,8 @@
 # 📖 Project Rules & Coding Standards
 ## Sistem Web Pondok Tadzimussunnah
 
-> **Last Updated:** November 27, 2025  
-> **Version:** 1.0.0
+> **Last Updated:** December 20, 2025  
+> **Version:** 2.0.0 - VPS Production Ready
 
 ---
 
@@ -17,9 +17,10 @@
 7. [Database Conventions (Prisma)](#database-conventions-prisma)
 8. [Git Workflow](#git-workflow)
 9. [Security Rules](#security-rules)
-10. [Performance Guidelines](#performance-guidelines)
-11. [Documentation Requirements](#documentation-requirements)
-12. [Testing Requirements](#testing-requirements)
+10. [VPS Deployment & Production Environment](#vps-deployment--production-environment)
+11. [Performance Guidelines](#performance-guidelines)
+12. [Documentation Requirements](#documentation-requirements)
+13. [Testing Requirements](#testing-requirements)
 
 ---
 
@@ -30,7 +31,9 @@
 - **Language:** TypeScript 5
 - **UI Library:** React 19.2.0
 - **Styling:** Tailwind CSS 4 + Shadcn/ui
-- **Database:** SQLite + Prisma ORM 5.22.0
+- **Database:** 
+  - Development: SQLite + Prisma ORM 5.22.0
+  - Production: PostgreSQL + Prisma ORM 5.22.0
 - **Authentication:** NextAuth v5 (Beta)
 - **Form Validation:** React Hook Form + Zod
 
@@ -40,6 +43,16 @@
 - **Database:** Prisma ORM with migrations
 - **State Management:** React Server Components + URL State
 - **File Structure:** Feature-based organization
+
+### Production Stack:
+- **Hosting:** VPS (Ubuntu 22.04 LTS)
+- **Domain:** siakad.tsn.ponpes.id
+- **Process Manager:** PM2 (Cluster mode)
+- **Web Server:** Nginx (Reverse Proxy)
+- **Database:** PostgreSQL 14+
+- **SSL:** Let's Encrypt (Certbot)
+- **Security:** UFW Firewall, Fail2Ban, SSH Hardening
+- **Deployment:** GitHub Actions (Auto-deploy)
 
 ---
 
@@ -1092,6 +1105,450 @@ export async function uploadImage(file: File) {
 
 ---
 
+## 🚀 VPS Deployment & Production Environment
+
+### Production Infrastructure:
+
+**Domain:** siakad.tsn.ponpes.id  
+**Repository:** [Irfan-Mahdi-acc/siakad-tsn-ponpes](https://github.com/Irfan-Mahdi-acc/siakad-tsn-ponpes)  
+**Deployment:** GitHub Actions (Auto-deploy on push to `main`)
+
+---
+
+### Directory Structure (VPS):
+
+```bash
+/var/www/siakad-tsn/
+├── .next/
+│   └── standalone/          # Production build
+│       ├── server.js        # PM2 entry point
+│       ├── .next/
+│       │   └── static/      # Static assets
+│       └── public/
+│           └── uploads/     # User uploaded files
+├── prisma/
+│   ├── schema.prisma
+│   └── migrations/
+├── .env                     # Production environment variables
+├── package.json
+└── ecosystem.config.js      # PM2 configuration
+```
+
+---
+
+### Environment Variables (Production):
+
+```bash
+# ✅ Production .env file location: /var/www/siakad-tsn/.env
+
+# Database (PostgreSQL)
+DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/siakad_tsn?schema=public"
+
+# NextAuth
+NEXTAUTH_URL="https://siakad.tsn.ponpes.id"
+NEXTAUTH_SECRET="your-strong-secret-min-32-chars"
+
+# Google OAuth (Production)
+GOOGLE_CLIENT_ID="your-production-client-id"
+GOOGLE_CLIENT_SECRET="your-production-client-secret"
+
+# Encryption
+ENCRYPTION_KEY="your-32-char-encryption-key"
+
+# Node Environment
+NODE_ENV="production"
+```
+
+> [!IMPORTANT]
+> **Generate Strong Secrets:**
+> ```bash
+> # Generate NEXTAUTH_SECRET
+> openssl rand -base64 32
+> 
+> # Generate ENCRYPTION_KEY (32 characters)
+> openssl rand -hex 16
+> ```
+
+---
+
+### Deployment Workflow:
+
+#### ✅ Automated Deployment (Recommended):
+
+```bash
+# 1. Push to GitHub main branch
+git add .
+git commit -m "feat: your feature description"
+git push origin main
+
+# 2. GitHub Actions automatically:
+#    - Pulls latest code to VPS
+#    - Installs dependencies
+#    - Runs database migrations
+#    - Builds application
+#    - Restarts PM2
+#    - Performs health check
+#    - Sends Telegram notification
+```
+
+#### 🔧 Manual Deployment:
+
+```bash
+# SSH to VPS
+ssh deploy@your-vps-ip -p 2222
+
+# Navigate to app directory
+cd /var/www/siakad-tsn
+
+# Pull latest changes
+git pull origin main
+
+# Install dependencies
+npm install
+
+# Run database migrations (PRODUCTION ONLY!)
+npx prisma migrate deploy
+
+# Generate Prisma client
+npx prisma generate
+
+# Build application
+npm run build
+
+# Copy static files for standalone mode
+cp -r .next/static .next/standalone/.next/
+cp -r public .next/standalone/
+
+# Restart PM2
+pm2 restart siakad-tsn
+
+# Check status
+pm2 status
+pm2 logs siakad-tsn --lines 50
+```
+
+> [!CAUTION]
+> **NEVER use `npx prisma migrate dev` in production!**
+> 
+> Always use `npx prisma migrate deploy` for production deployments.
+
+---
+
+### PM2 Process Management:
+
+#### Configuration:
+
+```javascript
+// ecosystem.config.js
+module.exports = {
+  apps: [{
+    name: 'siakad-tsn',
+    cwd: '/var/www/siakad-tsn',
+    script: 'node',
+    args: '.next/standalone/server.js',
+    instances: 2,              // Cluster mode
+    exec_mode: 'cluster',
+    env: {
+      NODE_ENV: 'production',
+      PORT: 3000
+    },
+    error_file: '/var/www/logs/siakad-error.log',
+    out_file: '/var/www/logs/siakad-out.log',
+    log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+    merge_logs: true,
+    autorestart: true,
+    max_restarts: 10,
+    min_uptime: '10s',
+    max_memory_restart: '1G'
+  }]
+};
+```
+
+#### Common PM2 Commands:
+
+```bash
+# Check application status
+pm2 status
+
+# View logs (real-time)
+pm2 logs siakad-tsn
+
+# View last 100 lines
+pm2 logs siakad-tsn --lines 100
+
+# Restart application
+pm2 restart siakad-tsn
+
+# Stop application
+pm2 stop siakad-tsn
+
+# Start application
+pm2 start ecosystem.config.js
+
+# Reload (zero-downtime restart)
+pm2 reload siakad-tsn
+
+# Monitor resources
+pm2 monit
+
+# Save PM2 configuration
+pm2 save
+
+# View detailed info
+pm2 show siakad-tsn
+```
+
+---
+
+### Database Management (Production):
+
+#### PostgreSQL Connection:
+
+```bash
+# Connect to PostgreSQL
+psql -U postgres -d siakad_tsn
+
+# Common PostgreSQL commands:
+\dt              # List tables
+\d table_name    # Describe table
+\q               # Quit
+```
+
+#### Migration Workflow:
+
+```bash
+# ✅ DO (Production):
+npx prisma migrate deploy    # Apply pending migrations
+npx prisma generate          # Regenerate Prisma client
+
+# ❌ DON'T (Production):
+npx prisma migrate dev       # NEVER use in production!
+npx prisma migrate reset     # Will delete all data!
+npx prisma db push           # Bypasses migration system
+```
+
+#### Database Backup:
+
+```bash
+# Manual backup
+pg_dump -U postgres siakad_tsn > backup_$(date +%Y%m%d_%H%M%S).sql
+
+# Restore from backup
+psql -U postgres -d siakad_tsn < backup_file.sql
+
+# Automated daily backups (cron)
+# Add to crontab: crontab -e
+0 2 * * * pg_dump -U postgres siakad_tsn > /var/backups/db/siakad_$(date +\%Y\%m\%d).sql
+```
+
+---
+
+### Nginx Configuration:
+
+#### Reverse Proxy Setup:
+
+```nginx
+# /etc/nginx/sites-available/siakad-tsn
+
+upstream siakad_backend {
+    server 127.0.0.1:3000;
+    keepalive 32;
+}
+
+server {
+    listen 80;
+    server_name siakad.tsn.ponpes.id;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name siakad.tsn.ponpes.id;
+    
+    # SSL certificates (managed by Certbot)
+    ssl_certificate /etc/letsencrypt/live/siakad.tsn.ponpes.id/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/siakad.tsn.ponpes.id/privkey.pem;
+    
+    # Security headers
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    
+    # Upload directory protection
+    location ~* ^/uploads/.*\.(php|php3|php4|php5|phtml|pl|py|jsp|asp|sh|cgi|exe)$ {
+        deny all;
+        return 403;
+    }
+    
+    # Serve uploads
+    location /uploads/ {
+        alias /var/www/siakad-tsn/.next/standalone/public/uploads/;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+    
+    # Proxy to Next.js
+    location / {
+        proxy_pass http://siakad_backend;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+#### Nginx Commands:
+
+```bash
+# Test configuration
+sudo nginx -t
+
+# Reload configuration
+sudo systemctl reload nginx
+
+# Restart Nginx
+sudo systemctl restart nginx
+
+# Check status
+sudo systemctl status nginx
+
+# View error logs
+sudo tail -f /var/log/nginx/error.log
+
+# View access logs
+sudo tail -f /var/log/nginx/access.log
+```
+
+---
+
+### SSL Certificate Management:
+
+```bash
+# Install Certbot
+sudo apt install certbot python3-certbot-nginx
+
+# Obtain SSL certificate
+sudo certbot --nginx -d siakad.tsn.ponpes.id
+
+# Auto-renewal is configured by default
+# Test renewal
+sudo certbot renew --dry-run
+
+# Check certificate expiry
+sudo certbot certificates
+```
+
+---
+
+### Production Security Checklist:
+
+- [x] SSH key-only authentication (port 2222)
+- [x] UFW firewall enabled (ports 80, 443, 2222)
+- [x] Fail2Ban configured
+- [x] PostgreSQL local-only access
+- [x] Strong passwords and secrets
+- [x] File upload validation (magic bytes)
+- [x] Nginx upload directory protection
+- [x] SSL/TLS enabled (HTTPS only)
+- [x] Security headers configured
+- [x] Regular automated backups
+- [x] PM2 log rotation enabled
+
+---
+
+### Monitoring & Health Checks:
+
+```bash
+# Check application health
+curl https://siakad.tsn.ponpes.id
+
+# Check PM2 status
+pm2 status
+
+# Check disk space
+df -h
+
+# Check memory usage
+free -h
+
+# Check database connections
+psql -U postgres -c "SELECT count(*) FROM pg_stat_activity;"
+
+# Check Nginx status
+sudo systemctl status nginx
+
+# Check firewall status
+sudo ufw status verbose
+
+# Check fail2ban status
+sudo fail2ban-client status sshd
+```
+
+---
+
+### Troubleshooting:
+
+#### Application Not Starting:
+
+```bash
+# Check PM2 logs
+pm2 logs siakad-tsn --lines 100
+
+# Check if port 3000 is in use
+sudo lsof -i :3000
+
+# Restart PM2
+pm2 restart siakad-tsn
+
+# Check environment variables
+cat /var/www/siakad-tsn/.env
+```
+
+#### Database Connection Issues:
+
+```bash
+# Test PostgreSQL connection
+psql -U postgres -d siakad_tsn
+
+# Check PostgreSQL status
+sudo systemctl status postgresql
+
+# Check database URL in .env
+grep DATABASE_URL /var/www/siakad-tsn/.env
+```
+
+#### Nginx Issues:
+
+```bash
+# Test Nginx configuration
+sudo nginx -t
+
+# Check Nginx error logs
+sudo tail -f /var/log/nginx/error.log
+
+# Restart Nginx
+sudo systemctl restart nginx
+```
+
+#### Upload Issues:
+
+```bash
+# Check upload directory permissions
+ls -la /var/www/siakad-tsn/.next/standalone/public/uploads/
+
+# Fix permissions if needed
+sudo chown -R deploy:deploy /var/www/siakad-tsn/.next/standalone/public/uploads/
+sudo chmod -R 755 /var/www/siakad-tsn/.next/standalone/public/uploads/
+```
+
+---
+
 ## ⚡ Performance Guidelines
 
 ### Component Optimization:
@@ -1331,6 +1788,15 @@ npm run dev
 - 📄 `PROTECT-YOUR-PROGRESS.md` - Full protection guide
 - 📄 `src/lib/*.md` - Feature-specific docs
 
+### VPS & Deployment Documentation:
+- 📄 `DEPLOYMENT.md` - Complete deployment guide
+- 📄 `SECURITY-HARDENING.md` - Security best practices
+- 📄 `DOMAIN-MIGRATION-QUICKSTART.md` - Domain setup guide
+- 📄 `.agent/workflows/vps-maintenance.md` - VPS maintenance workflow
+- 📄 `Auto_Deploy_Guide/` - GitHub Actions auto-deployment
+- 📄 `nginx-config.conf` - Nginx configuration reference
+- 📄 `env.production.template` - Production environment template
+
 ### External Resources:
 - Next.js: https://nextjs.org/docs
 - Prisma: https://prisma.io/docs
@@ -1339,9 +1805,9 @@ npm run dev
 
 ---
 
-**Last Updated:** November 27, 2025  
+**Last Updated:** December 20, 2025  
 **Maintained By:** Admin Pondok Tadzimussunnah  
-**Version:** 1.0.0
+**Version:** 2.0.0 - VPS Production Ready
 
 **These rules ensure consistency, maintainability, and quality across the entire codebase. Follow them diligently! 🚀**
 
